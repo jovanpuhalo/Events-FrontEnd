@@ -28,11 +28,10 @@ export class MainMenu extends React.Component<MainMenuProperties> {
                                 {
                                     this.props.items.map(item => {
 
-                                        if (item.text !== 'User Login') {
+                                        if (item.text !== 'User Login' && item.text !== 'Administrator Login' && item.text !== 'Log out' && item.text !== 'Registration' && item.text !== "My profile") {
                                             return this.makeNavLink(item);
-                                        } else {
-                                            return false;
                                         }
+                                        return false;
                                     }, this)
 
                                 }
@@ -43,7 +42,7 @@ export class MainMenu extends React.Component<MainMenuProperties> {
                         <Nav variant="tabs" className="justify-content-center border-0 justify-content-sm-end">
                             {
                                 this.props.items.map(item => {
-                                    if (item.text !== 'User Login') {
+                                    if (item.text !== 'User Login' && item.text !== 'Administrator Login' && item.text !== 'Log out' && item.text !== 'Registration' && item.text !== "My profile") {
                                         return false;
                                     }
                                     return this.makeNavLink(item);

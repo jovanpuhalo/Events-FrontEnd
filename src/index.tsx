@@ -11,6 +11,13 @@ import { HashRouter, Route } from 'react-router-dom';
 import Switch from 'react-bootstrap/esm/Switch';
 import HomePage from './components/HomePage/HomePage';
 import ContactPage from './components/ContactPage/ContactPage';
+import UserLogin from './components/UserLogin/UserLogin';
+import UserLogout from './components/UserLogout/UserLogout';
+import EventsPage from './components/EventsPage/EventsPage';
+import SingleEventPage from './components/SingleEventPage/SingleEventPage';
+import { UserRegistrationPage } from './components/UserRegistratironPage/UserregistrationPage';
+import UserEventsPage from './components/UserEventsPage/UserEventsPage';
+import UserProfilePage from './components/UserProfilePage/UserProfilePage';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -18,6 +25,13 @@ ReactDOM.render(
       <Switch>
         <Route exact path="/" component={HomePage} />
         <Route path="/contact" component={ContactPage} />
+        <Route path="/user/login" component={UserLogin} />
+        <Route path="/user/logout" component={UserLogout} />
+        <Route path="/user/registration/" component={UserRegistrationPage} />
+        <Route path="/eventType/:eId" component={EventsPage} />
+        <Route path="/event/:eId" component={SingleEventPage} />
+        <Route path="/user/userEvents/" component={UserEventsPage} />
+        <Route path="/user/userId" component={UserProfilePage} />
       </Switch>
     </HashRouter>
   </React.StrictMode>,
