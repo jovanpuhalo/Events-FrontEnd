@@ -113,7 +113,7 @@ export default class UserEventPage extends React.Component {
 
         token = tokenParts[1];
 
-        api('auth/user/userId', 'post', { token })
+        api('api/user/userId', 'post', { token })
             .then(res => {
                 if (res.status === 'login') {
                     this.setLoggedInState(false);
@@ -123,7 +123,10 @@ export default class UserEventPage extends React.Component {
                     this.setMessage('Request error. Please try to refresh the page.');
                     return;
                 }
-                this.setUserId(res.data);
+                console.log("rezultat" + res.data);
+
+                this.setUserId(res.data
+                );
                 this.setLoggedInState(true);
                 api('/api/events/' + this.state.userId, 'get', {})
                     .then(res => {
@@ -206,7 +209,7 @@ export default class UserEventPage extends React.Component {
 
 
     unsubscribe(userId: any, eventId: any) {
-        api('api/event/unsubscribe/' + userId + '/' + eventId, 'delete', {})
+        api('api/event/user/unsubscribe/' + userId + '/' + eventId, 'delete', {})
             .then((res: ApiResponse) => {
                 if (res.status === 'error') {
                     this.setMessage('Request error. Please try to refresh the page.');

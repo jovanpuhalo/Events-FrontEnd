@@ -1,7 +1,7 @@
 import { faHouseUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import { Card, Col, Container, Row } from "react-bootstrap";
+import { Button, Card, Col, Container, Row } from "react-bootstrap";
 import { Link, Redirect } from "react-router-dom";
 import { getTokenSourceMapRange } from "typescript";
 import api, { getToken } from "../../api/api";
@@ -17,7 +17,7 @@ interface Events {
 }
 
 interface HomePageState {
-    roleState: "user" | "visitor",
+    roleState: "user" | "visitor" | "administrator",
     isLogedIn: boolean,
     eventTypes?: Events[]
 
@@ -34,11 +34,17 @@ export default class HomePage extends React.Component {
             isLogedIn: false,
 
         }
-        const token = getToken('user').split(" ")[1]
+        const tokenUser = getToken('user').split(" ")[1]
 
-        if (token !== 'null') {
+        if (tokenUser !== 'null') {
             this.setRoleState('user')
+            return;
+        }
+        const tokenAdmin = getToken('administrator').split(" ")[1]
 
+        if (tokenAdmin !== 'null') {
+            this.setRoleState('administrator')
+            return;
         }
 
     }
@@ -93,8 +99,6 @@ export default class HomePage extends React.Component {
             })
     }
 
-
-
     private showEventTypes(eventType: Events) {
 
         return (
@@ -114,45 +118,18 @@ export default class HomePage extends React.Component {
     }
 
 
-
     render() {
         if (this.state.eventTypes?.length === 0) {
             return;
         }
         console.log(this.state.roleState);
 
-        if (this.state.roleState === 'visitor') {
-            return (
 
-
-                <Container>
-
-                    <RoledMainMenu role={this.state.roleState} />
-                    <Card>
-                        <Card.Body>
-                            <Card.Title>
-                                <FontAwesomeIcon icon={faHouseUser} /> Event types
-                            </Card.Title>
-                            <Card.Text>
-                                <Row>
-                                    {this.state.eventTypes?.map(this.showEventTypes)}
-                                </Row>
-                            </Card.Text>
-
-                        </Card.Body>
-                    </Card>
-
-
-                </Container>
-
-            )
-        }
 
 
 
         return (
             <Container>
-                <IdleTimerContainer />
                 <RoledMainMenu role={this.state.roleState} />
                 <Card>
                     <Card.Body>
@@ -167,9 +144,11 @@ export default class HomePage extends React.Component {
 
                     </Card.Body>
                 </Card>
-
-
             </Container>
+
         )
+
+
+
     }
 }

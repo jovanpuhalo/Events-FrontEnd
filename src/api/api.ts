@@ -8,6 +8,7 @@ export default function api(
     role: 'user' | 'administrator' = 'user',
 ) {
 
+
     return new Promise<ApiResponse>((resolve) => {
         const requestData = {
             method: method,
@@ -19,6 +20,8 @@ export default function api(
                 'Authorization': getToken(role)
             }
         }
+
+
         axios(requestData)
             .then(res => responseHandler(res, resolve))
             .catch(err => {

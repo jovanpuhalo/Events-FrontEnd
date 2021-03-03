@@ -31,7 +31,7 @@ interface EventDto {
 }
 
 interface EventPageState {
-    roleState: "user" | "visitor"
+    roleState?: "user" | "administrator"
     message: string;
     isLoggedIn: boolean;
     events?: EventDto[]
@@ -51,18 +51,23 @@ export default class EventPage extends React.Component<EventPageProperties>{
         this.state = {
             message: '',
             isLoggedIn: false,
-            roleState: 'visitor',
+
 
         }
-        const token = getToken('user').split(" ")[1]
+        const tokenUser = getToken('user').split(" ")[1]
 
-
-        if (token !== 'null') {
+        if (tokenUser !== 'null') {
             this.setRoleState('user')
+            return;
+        }
+        const tokenAdmin = getToken('administrator').split(" ")[1]
 
+        if (tokenAdmin !== 'null') {
+            this.setRoleState('administrator')
+            return;
         }
 
-        console.log('Konstruktor: u event page komponenti je  role User');
+
 
 
     }
@@ -105,7 +110,7 @@ export default class EventPage extends React.Component<EventPageProperties>{
 
 
     private getEvents() {
-        api('api/eventType/' + this.props.match.params.eId, 'get', {})
+        api('api/eventType/' + this.props.match.params.eId, 'get', {}, this.state.roleState)
             .then((res: ApiResponse) => {
                 if (res.status === 'error') {
                     this.setMessageState('Request error. Please try to refresh the page.');
@@ -149,16 +154,13 @@ export default class EventPage extends React.Component<EventPageProperties>{
 
 
     render() {
-        if (this.state.roleState !== "user") {
+        if (this.state.roleState !== "user" && this.state.roleState !== "administrator") {
 
             return (
                 <Redirect to="/user/login" />
             );
 
         }
-
-
-
 
         return (
             <Container>

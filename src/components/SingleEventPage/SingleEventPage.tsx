@@ -26,16 +26,19 @@ interface EventDto {
     eventType: {
         name: string
         eventTypeId: string
-    }
+    };
     users: {
         userId: number
 
+    }[];
+    administrators: {
+        administratorId: number
     }[]
 
 }
 
 interface EventPageState {
-    roleState: "user" | "visitor",
+    roleState: "user" | "administrator",
     message: string;
 
     isLoggedIn: boolean;
@@ -60,7 +63,7 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
         this.state = {
             message: '',
             isLoggedIn: false,
-            roleState: 'visitor',
+            roleState: 'user',
             subscribed: 'Subscribe'
 
 
@@ -71,7 +74,14 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
 
         if (token !== 'null') {
             this.setRoleState('user')
+            return;
+        }
 
+        const tokenAdmin = getToken('administrator').split(" ")[1]
+
+        if (tokenAdmin !== 'null') {
+            this.setRoleState('administrator')
+            return;
         }
     }
     private setEventStatusState(status: string) {
@@ -90,9 +100,9 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
         }))
     }
     private setStateUserId(userId: number) {
-        this.setState(Object.assign(this.state, {
+        this.setState({
             userId: userId
-        }))
+        })
     }
 
     // private setEventTypeState(event: string) {
@@ -128,8 +138,10 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
 
 
     private getEvent() {
-        api('api/event/' + this.props.match.params.eId, 'get', {})
+        api('api/event/' + this.props.match.params.eId, 'get', {}, this.state.roleState)
             .then((res: ApiResponse) => {
+                console.log(res.data);
+
                 if (res.status === 'error') {
                     this.setMessageState('Request error. Please try to refresh the page.');
                     return;
@@ -158,14 +170,16 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
                         eventTypeId: res.data.eventType.eventTypeId,
                         name: res.data.eventType.name,
                     },
-                    users: res.data.users
+                    users: res.data.users,
+                    administrators: res.data.administrators
                 }
 
                 this.setEventsState(event);
 
+
                 this.setStatusEvent(this.state.event?.start, this.state.event?.end)
 
-                this.getCurentUserId();
+                this.getCurentUserId(this.state.roleState);
 
 
 
@@ -176,7 +190,8 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
     render() {
 
 
-        if (this.state.roleState !== "user") {
+        if (this.state.isLoggedIn) {
+            console.log("bio sam ovde");
 
             return (
                 <Redirect to="/user/login" />
@@ -225,96 +240,218 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
         );
     }
 
-    private subscribe(status: any) {
+    private subscribe(status: any, role: "administrator" | "user") {
 
         if (status === 'Closed' || status === 'In Progress') {
             this.setMessageState("You cannot subscribe an event that has ended or is in progress")
             this.setSubscribedState("Subscribe");
             return;
         }
-        let token: string = getToken('user')
+        let token: string = getToken(role)
         const tokenParts = token.split(' ');
 
         token = tokenParts[1];
 
+        if (token !== 'null' && role === "user") {
+            api('api/user/userId', 'post', { token }, role)
+                .then((res: ApiResponse) => {
+                    if (res.status === 'error') {
+                        this.setMessageState('Request error. Please try to refresh the page.');
+                        return;
+                    }
+                    if (res.status === 'login') {
+                        this.setLoggedInState(true);
+                        return
+                    }
+                    this.setStateUserId(res.data)
 
-        api('auth/user/userId', 'post', { token })
-            .then((res: ApiResponse) => {
-                if (res.status === 'error') {
-                    this.setMessageState('Request error. Please try to refresh the page.');
-                    return;
-                }
-                if (res.status === 'login') {
-                    this.setLoggedInState(true);
-                    return
-                }
-                this.setStateUserId(res.data)
+                    if (this.state.subscribed === "Subscribe") {
 
-                if (this.state.subscribed === "Subscribe") {
+                        api('api/event/user/subscribe', 'post', { userId: this.state.userId, eventId: this.state.event?.eventId }, role)
+                            .then((res: ApiResponse) => {
+                                if (res.status === 'error') {
+                                    this.setMessageState('Request error. Please try to refresh the page.');
+                                }
+                                if (res.status === 'login') {
+                                    this.setLoggedInState(true);
+                                }
 
-                    api('api/event/subscribe', 'post', { userId: this.state.userId, eventId: this.state.event?.eventId })
-                        .then((res: ApiResponse) => {
-                            if (res.status === 'error') {
-                                this.setMessageState('Request error. Please try to refresh the page.');
-                            }
-                            if (res.status === 'login') {
-                                this.setLoggedInState(true);
-                            }
-
-                            this.setSubscribedState("Unsubscribe");
-
-
-                        })
-                } else {
-                    api('api/event/unsubscribe/' + this.state.userId + '/' + this.state.event?.eventId, 'delete', {})
-                        .then((res: ApiResponse) => {
-                            if (res.status === 'error') {
-                                this.setMessageState('Request error. Please try to refresh the page.');
-                            }
-                            if (res.status === 'login') {
-                                this.setLoggedInState(true);
-                            }
-
-                            this.setSubscribedState("Subscribe");
+                                this.setSubscribedState("Unsubscribe");
 
 
-                        })
-                }
+                            })
+                    } else {
+                        api('api/event/user/unsubscribe/' + this.state.userId + '/' + this.state.event?.eventId, 'delete', {}, role)
+                            .then((res: ApiResponse) => {
+                                if (res.status === 'error') {
+                                    this.setMessageState('Request error. Please try to refresh the page.');
+                                }
+                                if (res.status === 'login') {
+                                    this.setLoggedInState(true);
+                                }
+
+                                this.setSubscribedState("Subscribe");
+
+
+                            })
+                    }
 
 
 
 
-            })
+                })
+        }
+
+        // let tokenAdmin: string = getToken('administrator')
+        // const tokenPartss = tokenAdmin.split(' ');
+
+        // tokenAdmin = tokenPartss[1];
+
+        if (token !== 'null' && role === "administrator") {
+            api('api/administrator/admin/adminId', 'post', { token }, role)
+                .then((res: ApiResponse) => {
+                    if (res.status === 'error') {
+                        this.setMessageState('Request error. Please try to refresh the page.');
+                        return;
+                    }
+                    if (res.status === 'login') {
+                        this.setLoggedInState(true);
+                        return
+                    }
+                    this.setStateUserId(res.data)
+
+                    if (this.state.subscribed === "Subscribe") {
+                        console.log("user id je  " + this.state.userId);
+                        console.log("event id je " + this.state.event?.eventId);
+
+
+                        api('api/event/admin/subscribe', 'post', { administratorId: this.state.userId, eventId: this.state.event?.eventId }, role)
+                            .then((res: ApiResponse) => {
+                                if (res.status === 'error') {
+                                    this.setMessageState('Request error. Please try to refresh the page.');
+                                }
+                                if (res.status === 'login') {
+                                    this.setLoggedInState(true);
+                                }
+
+                                this.setSubscribedState("Unsubscribe");
+
+
+                            })
+                    } else {
+                        api('api/event/admin/unsubscribe/' + this.state.userId + '/' + this.state.event?.eventId, 'delete', {}, role)
+                            .then((res: ApiResponse) => {
+                                if (res.status === 'error') {
+                                    this.setMessageState('Request error. Please try to refresh the page.');
+                                }
+                                if (res.status === 'login') {
+                                    this.setLoggedInState(true);
+                                }
+
+                                this.setSubscribedState("Subscribe");
+
+
+                            })
+                    }
+
+
+
+
+                })
+        }
+
     }
 
-    private getCurentUserId() {
-        let token: string = getToken('user')
+    private getCurentUserId(role: "user" | "administrator") {
+        let token: string = getToken(role)
         const tokenParts = token.split(' ');
-
         token = tokenParts[1];
 
-        api('auth/user/userId', 'post', { token })
-            .then((res: ApiResponse) => {
-                if (res.status === 'error') {
-                    this.setMessageState('Request error. Please try to refresh the page.');
-                }
-                if (res.status === 'login') {
-                    this.setLoggedInState(true);
-                }
+        if (token !== "null" && role === "user") {
 
-                this.setStateUserId(res.data)
-
-                if (this.state.event?.users) {
-                    this.state.event.users.map((user) => {
-                        if (this.state.userId === user.userId) {
-                            this.setSubscribedState("Unsubscribe");
+            api('api/user/userId', 'post', { token }, role)
+                .then((res: ApiResponse) => {
+                    if (res.status === 'error') {
+                        this.setMessageState('Request error. Please try to refresh the page.');
+                    }
+                    if (res.status === 'login') {
+                        this.setLoggedInState(true);
+                    }
 
 
-                        }
-                    })
-                }
-            })
+                    this.setStateUserId(res.data)
 
+                    if (this.state.event?.users) {
+                        this.state.event.users.map((user) => {
+                            if (this.state.userId === user.userId) {
+                                this.setSubscribedState("Unsubscribe");
+
+
+                            }
+                        })
+                    }
+                })
+        }
+        if (token !== "null" && role === "administrator") {
+
+            api('api/administrator/admin/adminId', 'post', { token }, role)
+                .then((res: ApiResponse) => {
+                    if (res.status === 'error') {
+                        this.setMessageState('Request error. Please try to refresh the page.');
+                    }
+                    if (res.status === 'login') {
+                        this.setLoggedInState(true);
+                    }
+
+                    this.setStateUserId(res.data)
+
+                    if (this.state.event?.administrators) {
+                        this.state.event.administrators.map((administrator) => {
+                            if (this.state.userId === administrator.administratorId) {
+                                this.setSubscribedState("Unsubscribe");
+
+                            }
+                        })
+                    }
+                })
+        }
+
+        // let tokenAdmin: string = getToken('administrator')
+        // console.log("token admin  " + tokenAdmin);
+        // const tokenPartss = tokenAdmin.split(' ');
+
+        // tokenAdmin = tokenPartss[1];
+
+
+        // if (tokenAdmin !== "null") {
+        //     console.log("Trazim admin id  ");
+
+        //     api('api/administrator/admin/adminId', 'post', { tokenAdmin }, "administrator")
+        //         .then((res: ApiResponse) => {
+        //             console.log("rezultat " + res.data);
+
+        //             if (res.status === 'error') {
+        //                 this.setMessageState('Request error. Please try to refresh the page.');
+        //                 return
+        //             }
+        //             if (res.status === 'login') {
+        //                 this.setLoggedInState(true);
+        //                 return
+        //             }
+
+        //             this.setStateUserId(res.data)
+
+        //             if (this.state.event?.users) {
+        //                 this.state.event.users.map((user) => {
+        //                     if (this.state.userId === user.userId) {
+        //                         this.setSubscribedState("Unsubscribe");
+
+
+        //                     }
+        //                 })
+        //             }
+        //         })
+        // }
 
     }
 
@@ -379,7 +516,7 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
                         <p><b> Status:  </b> {this.state.eventStatus}</p>
 
                         <Button variant="primary" size="sm"
-                            onClick={() => this.subscribe(this.state.eventStatus)}
+                            onClick={() => this.subscribe(this.state.eventStatus, this.state.roleState)}
                         // disabled={this.state.eventStatus === "Closed" || this.state.eventStatus === "In Progress"}
                         >
                             <FontAwesomeIcon icon={faPlus} /> {(this.state.eventStatus === "Closed" || this.state.eventStatus === "In Progress")

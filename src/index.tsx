@@ -18,6 +18,8 @@ import SingleEventPage from './components/SingleEventPage/SingleEventPage';
 import { UserRegistrationPage } from './components/UserRegistratironPage/UserregistrationPage';
 import UserEventsPage from './components/UserEventsPage/UserEventsPage';
 import UserProfilePage from './components/UserProfilePage/UserProfilePage';
+import AdministratorLogin from './components/Administrator/AdministratorLogin';
+import AdministratorLogout from './components/Administrator/AdministratorLogout';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -32,6 +34,9 @@ ReactDOM.render(
         <Route path="/event/:eId" component={SingleEventPage} />
         <Route path="/user/userEvents/" component={UserEventsPage} />
         <Route path="/user/userId" component={UserProfilePage} />
+        <Route path="/administrator/login" component={AdministratorLogin} />
+        <Route path="/administrator/logout" component={AdministratorLogout} />
+
       </Switch>
     </HashRouter>
   </React.StrictMode>,
