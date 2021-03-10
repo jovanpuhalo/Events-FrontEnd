@@ -26,7 +26,10 @@ export default class RoledMainMenu extends React.Component<RoledMainMenuProperti
 
     getAdministratorMenuItems(): MainMenuItem[] {
         return [
+            new MainMenuItem("Home", "/"),
             new MainMenuItem("Dashboard", "/administrator/dashboard/"),
+            new MainMenuItem("My events", "/events/" + this.props.role),
+
             new MainMenuItem("Log out", "/administrator/logout/"),
         ];
     }
@@ -48,7 +51,7 @@ export default class RoledMainMenu extends React.Component<RoledMainMenuProperti
             new MainMenuItem("Home", "/"),
             new MainMenuItem("My profile", "/user/userId"),
             new MainMenuItem("Log out", "/user/logout/"),
-            new MainMenuItem("My events", "/user/userEvents/"),
+            new MainMenuItem("My events", `/events/${this.props.role}`),
         ];
     }
 

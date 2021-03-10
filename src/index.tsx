@@ -20,6 +20,9 @@ import UserEventsPage from './components/UserEventsPage/UserEventsPage';
 import UserProfilePage from './components/UserProfilePage/UserProfilePage';
 import AdministratorLogin from './components/Administrator/AdministratorLogin';
 import AdministratorLogout from './components/Administrator/AdministratorLogout';
+import AdministratorDashboard from './components/Administrator/AdministratorDashboard';
+import AdministratorEvent from './components/Administrator/AdministratorEvent';
+import AdministratorDashboardEventTypes from './components/Administrator/AdministratorDashboardEventTypes';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -32,10 +35,14 @@ ReactDOM.render(
         <Route path="/user/registration/" component={UserRegistrationPage} />
         <Route path="/eventType/:eId" component={EventsPage} />
         <Route path="/event/:eId" component={SingleEventPage} />
-        <Route path="/user/userEvents/" component={UserEventsPage} />
+        <Route path="/events/:role" component={UserEventsPage} />
         <Route path="/user/userId" component={UserProfilePage} />
         <Route path="/administrator/login" component={AdministratorLogin} />
         <Route path="/administrator/logout" component={AdministratorLogout} />
+        <Route exact path="/administrator/dashboard" component={AdministratorDashboard} />
+        <Route exact path="/administrator/dashboard/events" component={AdministratorDashboardEventTypes} />
+        <Route path="/administrator/dashboard/events/event" component={AdministratorEvent} />
+
 
       </Switch>
     </HashRouter>

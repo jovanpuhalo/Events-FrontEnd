@@ -95,6 +95,9 @@ export default class HomePage extends React.Component {
                 this.setLoginState(true);
 
                 this.setEventTypesState(res.data)
+                // console.log("home page res.data  ", res.data);
+                // console.log("home page eventTyoe state  ", this.state.eventTypes);
+
 
             })
     }

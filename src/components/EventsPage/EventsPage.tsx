@@ -78,11 +78,11 @@ export default class EventPage extends React.Component<EventPageProperties>{
         }))
     }
 
-    private setEventTypeState(event: string) {
-        this.setState(Object.assign(this.state, {
-            eventType: event
-        }))
-    }
+    // private setEventTypeState(event: string) {
+    //     this.setState(Object.assign(this.state, {
+    //         eventType: event
+    //     }))
+    // }
 
     private setRoleState(role: string) {
         this.setState(Object.assign(this.state, {
@@ -124,8 +124,8 @@ export default class EventPage extends React.Component<EventPageProperties>{
                 }
 
                 this.setLoggedInState(true);
-                const eventType: string = res.data.name
-                this.setEventTypeState(eventType);
+                // const eventType: string = res.data.name
+                // this.setEventTypeState(eventType);
 
                 const events: EventDto[] =
                     res.data.events.map((event: EventDto) => {

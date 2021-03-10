@@ -7,6 +7,16 @@ import api, { ApiResponse, getToken } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";
 import RoledMainMenu from "../RoledMainMenu/RoledMainMenu";
 
+interface EventsPageProperties {
+    match: {
+        params: {
+            role: "administrator" | "user"
+        }
+    }
+
+
+}
+
 interface Events {
     userEventsId: number,
     eventTypeId: number,
@@ -35,9 +45,9 @@ interface UserEventPageState {
 }
 
 
-export default class UserEventPage extends React.Component {
+export default class UserEventPage extends React.Component<EventsPageProperties> {
     state: UserEventPageState;
-    constructor(props: {} | Readonly<{}>) {
+    constructor(props: EventsPageProperties | Readonly<EventsPageProperties>) {
         super(props)
 
         this.state = {
@@ -54,10 +64,11 @@ export default class UserEventPage extends React.Component {
         //     this.setRoleState('user')
 
         // }
+        console.log(this.props.match.params.role);
 
     }
 
-    private setUserId(userId: number) {
+    private setStateUserId(userId: number) {
         let newState = Object.assign(this.state, {
             userId: userId
         })
@@ -102,114 +113,189 @@ export default class UserEventPage extends React.Component {
     // }
 
     componentDidMount() {
-        this.getEventsForUser();
+        this.getEventsForUser(this.props.match.params.role);
     }
 
 
 
-    private getEventsForUser() {
-        let token: string = getToken('user')
+    private getEventsForUser(role: "administrator" | "user") {
+        let token: string = getToken(role)
         const tokenParts = token.split(' ');
 
         token = tokenParts[1];
 
-        api('api/user/userId', 'post', { token })
-            .then(res => {
-                if (res.status === 'login') {
-                    this.setLoggedInState(false);
-                    return;
-                }
-                if (res.status === 'error') {
-                    this.setMessage('Request error. Please try to refresh the page.');
-                    return;
-                }
-                console.log("rezultat" + res.data);
-
-                this.setUserId(res.data
-                );
-                this.setLoggedInState(true);
-                api('/api/events/' + this.state.userId, 'get', {})
-                    .then(res => {
-                        if (res.status === 'login') {
-                            this.setLoggedInState(false);
-                            return;
-                        }
-                        if (res.status === 'error') {
-                            // this.setMessage('Request error. Please try to refresh the page.');
-                            return;
-                        }
+        if (token !== 'null' && role === "user") {
+            api('api/user/userId', 'post', { token }, role)
+                .then((res: ApiResponse) => {
+                    if (res.status === 'error') {
+                        // this.setMessageState('Request error. Please try to refresh the page.');
+                        return;
+                    }
+                    if (res.status === 'login') {
                         this.setLoggedInState(true);
-                        // console.log(res.data);
+                        return
+                    }
+                    this.setStateUserId(res.data)
+                    this.setLoggedInState(true);
+
+                    api('/api/events/' + this.state.userId, 'get', {})
+                        .then(res => {
+                            if (res.status === 'login') {
+                                this.setLoggedInState(false);
+                                return;
+                            }
+                            if (res.status === 'error') {
+                                // this.setMessage('Request error. Please try to refresh the page.');
+                                return;
+                            }
+                            this.setLoggedInState(true);
+                            // console.log(res.data);
 
 
-                        let userEventss: number[] = []
-                        userEventss = res.data.userEvents.map((userEvent: any) => {
-                            userEventss.push(userEvent.userEventId)
+                            let userEventss: number[] = []
+                            userEventss = res.data.userEvents.map((userEvent: any) => {
+                                userEventss.push(userEvent.userEventId)
 
-                            this.setUserEvents(userEventss)
+                                this.setUserEvents(userEventss)
+                            })
+
+
+
+
+
+                            // this.setEventTypesState(res.data)
+                            let events: Events[] =
+                                res.data.events.map((event: Events) => {
+                                    const status = this.setStatusEvent(event.start, event.end)
+
+                                    return {
+                                        userEventsId: this.state.userEvents.shift(),
+                                        eventId: event.eventId,
+                                        name: event.name,
+                                        description: event.description,
+                                        start: event.start,
+                                        end: event.end,
+                                        status: status,
+                                        eventTypeId: event.eventTypeId,
+                                        location: event.location,
+                                        // userEventsId: res.data.userEvents.filter((userEvent: any) => userEvent.eventId === event.eventId).map()
+                                    }
+                                }).sort(function (a: any, b: any) {
+                                    return a.userEventsId - b.userEventsId
+                                });
+                            // console.log(events);
+                            // events.sort(function (a, b) {
+                            //     return a.userEventsId - b.userEventsId
+                            // })
+
+                            this.setEventState(events)
+                            console.log(events);
                         })
 
+                })
+
+
+        }
+
+
+        if (token !== 'null' && role === "administrator") {
+            api('api/administrator/admin/adminId', 'post', { token }, role)
+                .then((res: ApiResponse) => {
+                    if (res.status === 'error') {
+                        // this.setMessageState('Request error. Please try to refresh the page.');
+                        return;
+                    }
+                    if (res.status === 'login') {
+                        this.setLoggedInState(true);
+                        return
+                    }
+                    this.setStateUserId(res.data)
+                    this.setLoggedInState(true);
+
+                    api('/api/administrator/events/' + this.state.userId, 'get', {}, role)
+                        .then(res => {
+                            if (res.status === 'login') {
+                                this.setLoggedInState(false);
+                                return;
+                            }
+                            if (res.status === 'error') {
+                                // this.setMessage('Request error. Please try to refresh the page.');
+                                return;
+                            }
+                            this.setLoggedInState(true);
+                            // console.log(res.data);
+                            console.log(res.data);
+
+                            let adminEvents: number[] = []
+                            adminEvents = res.data.administratorEvents.map((administratorEvent: any) => {
+                                adminEvents.push(administratorEvent.administratorEventId)
+
+                                this.setUserEvents(adminEvents)
+
+
+                            })
 
 
 
 
-                        // this.setEventTypesState(res.data)
-                        let events: Events[] =
-                            res.data.events.map((event: Events) => {
-                                const status = this.setStatusEvent(event.start, event.end)
 
-                                return {
-                                    userEventsId: this.state.userEvents.shift(),
-                                    eventId: event.eventId,
-                                    name: event.name,
-                                    description: event.description,
-                                    start: event.start,
-                                    end: event.end,
-                                    status: status,
-                                    eventTypeId: event.eventTypeId,
-                                    location: event.location,
-                                    // userEventsId: res.data.userEvents.filter((userEvent: any) => userEvent.eventId === event.eventId).map()
-                                }
-                            }).sort(function (a: any, b: any) {
-                                return a.userEventsId - b.userEventsId
-                            });
-                        // console.log(events);
-                        // events.sort(function (a, b) {
-                        //     return a.userEventsId - b.userEventsId
-                        // })
+                            // this.setEventTypesState(res.data)
+                            let events: Events[] =
+                                res.data.events.map((event: Events) => {
+                                    const status = this.setStatusEvent(event.start, event.end)
 
-                        this.setEventState(events)
-                        console.log(events);
-                    })
+                                    return {
+                                        userEventsId: this.state.userEvents.shift(),
+                                        eventId: event.eventId,
+                                        name: event.name,
+                                        description: event.description,
+                                        start: event.start,
+                                        end: event.end,
+                                        status: status,
+                                        eventTypeId: event.eventTypeId,
+                                        location: event.location,
+                                        // userEventsId: res.data.userEvents.filter((userEvent: any) => userEvent.eventId === event.eventId).map()
+                                    }
+                                }).sort(function (a: any, b: any) {
+                                    return a.userEventsId - b.userEventsId
+                                });
+                            // console.log(events);
+                            // events.sort(function (a, b) {
+                            //     return a.userEventsId - b.userEventsId
+                            // })
 
-            })
+                            this.setEventState(events)
+                            console.log(events);
+                        })
+
+                })
 
 
+        }
     }
 
 
+    // private showEventTypes(eventType: Events) {
 
-    private showEventTypes(eventType: Events) {
+    //     return (
+    //         <Col lg="3" md="4" sm="6" xs="12" >
+    //             <Card className="mb-3 ">
+    //                 <Card.Body>
+    //                     <Card.Title as="p"> {eventType.name} </Card.Title>
+    //                     <Link to={`/eventType/${eventType.eventTypeId}`}
+    //                         className="btn btn-primary btn-block btn-sm">
+    //                         Show events
+    //                                   </Link>
+    //                 </Card.Body>
+    //             </Card>
+    //         </Col>
 
-        return (
-            <Col lg="3" md="4" sm="6" xs="12" >
-                <Card className="mb-3 ">
-                    <Card.Body>
-                        <Card.Title as="p"> {eventType.name} </Card.Title>
-                        <Link to={`/eventType/${eventType.eventTypeId}`}
-                            className="btn btn-primary btn-block btn-sm">
-                            Show events
-                                      </Link>
-                    </Card.Body>
-                </Card>
-            </Col>
-
-        );
-    }
+    //     );
+    // }
 
 
     unsubscribe(userId: any, eventId: any) {
-        api('api/event/user/unsubscribe/' + userId + '/' + eventId, 'delete', {})
+        api('api/event/admin/unsubscribe/' + userId + '/' + eventId, 'delete', {}, "administrator")
             .then((res: ApiResponse) => {
                 if (res.status === 'error') {
                     this.setMessage('Request error. Please try to refresh the page.');
@@ -220,7 +306,7 @@ export default class UserEventPage extends React.Component {
                     return;
                 }
 
-                this.getEventsForUser();
+                this.getEventsForUser(this.props.match.params.role);
             })
     }
 
@@ -251,7 +337,7 @@ export default class UserEventPage extends React.Component {
         return (
             <Container >
                 <IdleTimerContainer />
-                <RoledMainMenu role={"user"} />
+                <RoledMainMenu role={this.props.match.params.role} />
                 <Col >
                     <Card  >
                         <Card.Body>
