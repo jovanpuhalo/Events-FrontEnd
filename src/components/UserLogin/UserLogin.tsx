@@ -14,16 +14,21 @@ interface UserLoginState {
 }
 
 export default class UserLogin extends React.Component {
-
+    private inputRef: React.RefObject<HTMLInputElement>;
     state: UserLoginState
     constructor(props: {} | Readonly<{}>) {
-        super(props)
+        super(props);
+        this.inputRef = React.createRef();
         this.state = {
             username: '',
             password: '',
             errorMessage: '',
             isLoggedIn: false
         }
+    }
+
+    componentDidMount() {
+        this.inputRef.current?.focus();
     }
 
     private formInputChanged(e: React.ChangeEvent<HTMLInputElement>) {
@@ -72,6 +77,7 @@ export default class UserLogin extends React.Component {
                         switch (res.data.errorCode) {
                             case -4001: message = "Can't find user with that username"; break;
                             case -4002: message = "Incorrect password"; break;
+                            case -4003: message = "User is no longer valid"; break;
                         }
                         this.setErrorMessage(message);
                         return;
@@ -103,7 +109,7 @@ export default class UserLogin extends React.Component {
                             <Form className="mx-2">
                                 <Form.Group>
                                     <Form.Label htmlFor="username">Username:</Form.Label>
-                                    <Form.Control type="username" id="username"
+                                    <Form.Control type="username" id="username" ref={this.inputRef}
                                         value={this.state.username}
                                         onChange={(e) => this.formInputChanged(e as any)} />
                                 </Form.Group>

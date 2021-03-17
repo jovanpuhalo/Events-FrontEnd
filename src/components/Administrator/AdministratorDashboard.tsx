@@ -38,6 +38,7 @@ class AdministratorDashboard extends React.Component {
                     this.setLogginState(false);
                     return;
                 }
+                this.setLogginState(true);
             });
     }
 
@@ -48,7 +49,7 @@ class AdministratorDashboard extends React.Component {
     }
 
     render() {
-        if (this.state.isAdministratorLoggedIn === false) {
+        if (!this.state.isAdministratorLoggedIn) {
             return (
                 <Redirect to="/administrator/login" />
             );
@@ -64,8 +65,8 @@ class AdministratorDashboard extends React.Component {
                         </Card.Title>
 
                         <ul>
-                            <li><Link to="/administrator/dashboard/events">Events</Link></li>
-                            <li><Link to="/administrator/dashboard/">Users</Link></li>
+                            <li><Link to="/administrator/dashboard/eventTypes">Events</Link></li>
+                            <li><Link to="/administrator/dashboard/users">Users</Link></li>
                         </ul>
                     </Card.Body>
                 </Card>

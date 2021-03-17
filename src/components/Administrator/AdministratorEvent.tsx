@@ -3,7 +3,7 @@ import { faBackward, faEdit, faListAlt, faPlus, faSave } from "@fortawesome/free
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import { Alert, Button, Card, Col, Container, Form, Modal, Table } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import api, { ApiResponse } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";
 import RoledMainMenu from "../RoledMainMenu/RoledMainMenu";
@@ -13,12 +13,6 @@ interface EventsPageProperties {
 }
 
 
-interface EventType {
-    eventTypeId: number,
-    name: string,
-    events: EventDto[]
-}
-
 
 interface EventDto {
     eventId: number;
@@ -27,9 +21,7 @@ interface EventDto {
     start: string;
     end: string;
     location: string;
-    // eventType: {
-    //     name: string
-    // }
+
     eventTypeId: number
 
 }
@@ -38,6 +30,7 @@ interface EventDto {
 interface AdministratorEventState {
     eventTypeId: number
     events?: EventDto[]
+    isAdministratorLoggedIn: boolean;
     editModal: {
         visible: boolean,
         eventId: number,
@@ -69,6 +62,7 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
     constructor(props: EventsPageProperties | Readonly<EventsPageProperties>) {
         super(props)
         this.state = {
+            isAdministratorLoggedIn: true,
             eventTypeId: 0,
             editModal: {
                 visible: false,
@@ -102,27 +96,13 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
 
             this.setEventTypesState(JSON.parse(state))
             this.setEventTypeIdState(JSON.parse(eventTypeId))
-            // return;
+
         }
-        // console.log(this.state.eventTypeId);
-
-        // if (this.props.location?.state.events !== undefined) {
-        //     this.setEventTypesState(this.props.location.state.events)
-        //     console.log("ovo se ne izvrava kada reloudujemo stranicu");
-        //     this.saveStateToLocalStorage(this.props.location.state.events)
-
-
-        // }
 
     }
 
-    // componentWillUnmount() {
-    //     localStorage.removeItem('state')
-
-    // }
-
     componentDidMount() {
-        // this.getEvents(this.state.eventTypeId)
+        this.getEvents(this.state.eventTypeId)
     }
 
     private setEventTypeIdState(eventTypeId: number) {
@@ -155,6 +135,14 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
             })
         ));
     }
+
+    private setLogginState(isLoggedIn: boolean) {
+        this.setState(Object.assign(this.state, {
+            isAdministratorLoggedIn: isLoggedIn,
+        }));
+    }
+
+
     private setAddModalStringFieldState(fieldName: string, newValue: string) {
         this.setState(Object.assign(this.state,
             Object.assign(this.state.addModal, {
@@ -179,20 +167,6 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
         ));
     }
 
-    private formInputChanged(event: React.ChangeEvent<HTMLInputElement>) {
-        this.setState(Object.assign(this.state,
-            Object.assign(this.state.addModal, {
-                [event.target.id]: event.target.value
-            })
-        ));
-    }
-
-
-    private saveStateToLocalStorage(stejt: any) {
-        localStorage.setItem('state', JSON.stringify(stejt))
-    }
-
-
     private setEventTypesState(events: EventDto[]) {
         let newState = Object.assign(this.state, {
             events: events
@@ -202,7 +176,11 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
 
 
     render() {
-
+        if (this.state.isAdministratorLoggedIn === false) {
+            return (
+                <Redirect to="/administrator/login" />
+            );
+        }
 
         return (
             <Container>
@@ -218,7 +196,7 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
                             <thead>
                                 <tr>
                                     <th colSpan={5}>
-                                        <Link to="/administrator/dashboard/events"
+                                        <Link to="/administrator/dashboard/eventTypes"
                                             className="btn btn-sm btn-secondary mb-2">
                                             <FontAwesomeIcon icon={faBackward} /> Back to event types
                                           </Link><br /><br />
@@ -256,7 +234,7 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
                                                 <Button variant="danger" size="sm" className="mr-2" onClick={() => this.doDeleteEvent(event.eventId)}>
                                                     Delete
                                                </Button>
-                                                <Button variant="secondary" size="sm" onClick={() => { this.showEditModal(event); }} >
+                                                <Button variant="secondary" size="sm" onClick={() => this.showEditModal(event)} >
                                                     Edit
                                                  </Button>
                                             </td>
@@ -270,100 +248,10 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
 
                     </Card.Body>
                 </Card>
-                <Modal size="lg" centered show={this.state.addModal.visible}
-                    onHide={() => this.setAddModalVisible(false)}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Add event</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Form.Group>
-                            <Form.Label htmlFor="edit-name">Name</Form.Label>
-                            <Form.Control id="edit-name" type="text"
-                                value={this.state.addModal.name}
-                                onChange={(e) => this.setAddModalStringFieldState('name', e.target.value)} />
 
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label htmlFor="edit-desc">Description</Form.Label>
-                            <Form.Control id="edit-desc" as="textarea"
-                                value={this.state.addModal.description}
-                                onChange={(e) => this.setAddModalStringFieldState('description', e.target.value)}
-                                rows={2} />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label htmlFor="edit-start">Start</Form.Label>
-                            <Form.Control id="edit-start" type="text"
-                                value={this.state.addModal.start}
-                                onChange={(e) => this.setAddModalStringFieldState('start', e.target.value)} />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label htmlFor="edit-end">End</Form.Label>
-                            <Form.Control id="edit-end" type="text"
-                                value={this.state.addModal.end}
-                                onChange={(e) => this.setAddModalStringFieldState('end', e.target.value)} />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label htmlFor="edit-location">Location</Form.Label>
-                            <Form.Control id="edit-location" type="text"
-                                value={this.state.addModal.location}
-                                onChange={(e) => this.setAddModalStringFieldState('location', e.target.value)} />
-                        </Form.Group>
+                {this.addModal()}
+                {this.editModal()}
 
-                        <Form.Group>
-                            <Button variant="primary" onClick={() => this.doAddEvent()}>
-                                <FontAwesomeIcon icon={faSave} /> Add event
-                            </Button>
-                        </Form.Group>
-                        {this.state.addModal.message ? (
-                            <Alert variant="danger" value={this.state.addModal.message} />
-                        ) : ''}
-                    </Modal.Body>
-                </Modal>
-
-                <Modal size="lg" centered show={this.state.editModal.visible}
-                    onHide={() => this.setEditModalVisible(false)}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Edit event</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Form.Group>
-                            <Form.Label htmlFor="edit-name">Name</Form.Label>
-                            <Form.Control id="edit-name" type="text" value={this.state.editModal.name}
-                                onChange={(e) => this.setEditModalStringFieldState('name', e.target.value)} />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label htmlFor="edit-desc">Description</Form.Label>
-                            <Form.Control id="edit-desc" as="textarea" value={this.state.editModal.description}
-                                onChange={(e) => this.setEditModalStringFieldState('description', e.target.value)}
-                                rows={6} />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label htmlFor="edit-start">Start</Form.Label>
-                            <Form.Control id="edit-start" type="text" value={this.state.editModal.start}
-                                onChange={(e) => this.setEditModalStringFieldState('start', e.target.value)} />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label htmlFor="edit-end">End</Form.Label>
-                            <Form.Control id="edit-end" type="text" value={this.state.editModal.end}
-                                onChange={(e) => this.setEditModalStringFieldState('end', e.target.value)} />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label htmlFor="edit-location">Location</Form.Label>
-                            <Form.Control id="edit-location" type="text" value={this.state.editModal.location}
-                                onChange={(e) => this.setEditModalStringFieldState('location', e.target.value)} />
-                        </Form.Group>
-
-                        <Form.Group>
-
-                            <Button variant="primary" onClick={() => this.doEditEvent()}>
-                                <FontAwesomeIcon icon={faSave} /> Edit event
-                            </Button>
-                        </Form.Group>
-                        {this.state.editModal.message ? (
-                            <Alert variant="danger" value={this.state.editModal.message} />
-                        ) : ''}
-                    </Modal.Body>
-                </Modal>
 
             </Container>
 
@@ -374,20 +262,24 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
     }
 
     private doDeleteEvent(id: number) {
+
+        if (!window.confirm('Are you sure?')) {
+            return;
+        }
         api('api/event/' + id, 'delete', {}, 'administrator')
             .then((res: ApiResponse) => {
-                console.log(res);
 
                 if (res.status === 'error') {
                     // this.setEditModalStringFieldState('message', 'Request error. Please try to refresh the page.');
                     return;
                 }
                 if (res.status === 'login') {
-                    // this.setLoggedInState(false);
+                    this.setLogginState(false);
                     // this.setMessageState('Please Log in!');
 
                     return;
                 }
+
                 this.getEvents(this.state.eventTypeId)
 
 
@@ -412,12 +304,12 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
                     return;
                 }
                 if (res.status === 'login') {
-                    // this.setLoggedInState(false);
+                    this.setLogginState(false);
                     // this.setMessageState('Please Log in!');
 
                     return;
                 }
-
+                // this.setLogginState(true);
                 this.setAddModalVisible(false);
                 this.getEvents(this.state.eventTypeId)
             })
@@ -440,13 +332,12 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
                     return;
                 }
                 if (res.status === 'login') {
-                    // this.setLoggedInState(false);
+                    this.setLogginState(false);
                     // this.setMessageState('Please Log in!');
 
                     return;
                 }
-                console.log(this.state.editModal.eventTypeId);
-
+                // this.setLogginState(true);
                 this.setEditModalVisible(false);
                 const eventTypeId = localStorage.getItem('eventTypeId')
 
@@ -458,13 +349,6 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
 
             })
 
-
-
-
-
-
-        // this.setEditModalStringFieldState('message', 'Request error. Please try to refresh the page.');
-
     }
 
     private getEvents(id: number) {
@@ -475,39 +359,31 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
                     return;
                 }
                 if (res.status === 'login') {
-                    // this.setLoggedInState(false);
+                    this.setLogginState(false);
                     // this.setMessageState('Please Log in!');
 
                     return;
                 }
 
-                // this.setLoggedInState(true);
-                // const eventType: string = res.data.name
-                // this.setEventTypeState(eventType);
+
 
                 const events: EventDto[] =
-                    res.data.events.map((event: EventDto) => {
+                    res.data.events?.map((event: EventDto) => {
                         return {
                             eventId: event.eventId,
                             name: event.name,
                             description: event.description,
                             start: event.start,
                             end: event.end,
-                            // status: event.status,
                             location: event.location
 
                         }
                     })
                 this.setEventTypesState(events);
-                console.log("novi eventi  ", this.state.events);
-                console.log("res.data  ", res.data);
-                console.log("events  ", events);
-
-
+                this.setEventTypeIdState(id);
 
             })
 
-        // api('api/event/'+)
     }
 
     private showEditModal(event: EventDto) {
@@ -516,13 +392,14 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
         this.setEditModalStringFieldState('name', event.name);
         this.setEditModalNumberFieldState('eventId', event.eventId);
         this.setEditModalStringFieldState('description', event.description);
-        this.setEditModalStringFieldState('start', event.start);
-        this.setEditModalStringFieldState('end', event.end);
+        this.setEditModalStringFieldState('start', `${event.start.slice(0, 10) + ' ' + event.start.slice(11, 16)}`);
+        this.setEditModalStringFieldState('end', `${event.end.slice(0, 10) + ' ' + event.end.slice(11, 16)}`);
         this.setEditModalStringFieldState('location', event.location);
         this.setEditModalNumberFieldState('eventTypeId', event.eventTypeId);
 
         this.setEditModalVisible(true);
     }
+
 
     private showAddModal() {
 
@@ -536,5 +413,108 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
 
 
         this.setAddModalVisible(true);
+    }
+
+
+
+    private addModal() {
+        return (
+            <Modal size="lg" centered show={this.state.addModal.visible}
+                onHide={() => this.setAddModalVisible(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add event</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Group>
+                        <Form.Label htmlFor="edit-name">Name</Form.Label>
+                        <Form.Control id="edit-name" type="text"
+                            value={this.state.addModal.name}
+                            onChange={(e) => this.setAddModalStringFieldState('name', e.target.value)} />
+
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label htmlFor="edit-desc">Description</Form.Label>
+                        <Form.Control id="edit-desc" as="textarea"
+                            value={this.state.addModal.description}
+                            onChange={(e) => this.setAddModalStringFieldState('description', e.target.value)}
+                            rows={2} />
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label htmlFor="edit-start">Start</Form.Label>
+                        <Form.Control id="edit-start" type="text"
+                            value={this.state.addModal.start}
+                            onChange={(e) => this.setAddModalStringFieldState('start', e.target.value)} />
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label htmlFor="edit-end">End</Form.Label>
+                        <Form.Control id="edit-end" type="text"
+                            value={this.state.addModal.end}
+                            onChange={(e) => this.setAddModalStringFieldState('end', e.target.value)} />
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label htmlFor="edit-location">Location</Form.Label>
+                        <Form.Control id="edit-location" type="text"
+                            value={this.state.addModal.location}
+                            onChange={(e) => this.setAddModalStringFieldState('location', e.target.value)} />
+                    </Form.Group>
+
+                    <Form.Group>
+                        <Button variant="primary" onClick={() => this.doAddEvent()}>
+                            <FontAwesomeIcon icon={faSave} /> Add event
+                            </Button>
+                    </Form.Group>
+                    {this.state.addModal.message ? (
+                        <Alert variant="danger" value={this.state.addModal.message} />
+                    ) : ''}
+                </Modal.Body>
+            </Modal>
+        )
+    }
+
+    private editModal() {
+        return (<Modal size="lg" centered show={this.state.editModal.visible}
+            onHide={() => this.setEditModalVisible(false)}>
+            <Modal.Header closeButton>
+                <Modal.Title>Edit event</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form.Group>
+                    <Form.Label htmlFor="edit-name">Name</Form.Label>
+                    <Form.Control id="edit-name" type="text" value={this.state.editModal.name}
+                        onChange={(e) => this.setEditModalStringFieldState('name', e.target.value)} />
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label htmlFor="edit-desc">Description</Form.Label>
+                    <Form.Control id="edit-desc" as="textarea" value={this.state.editModal.description}
+                        onChange={(e) => this.setEditModalStringFieldState('description', e.target.value)}
+                        rows={6} />
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label htmlFor="edit-start">Start</Form.Label>
+                    <Form.Control id="edit-start" type="text" value={this.state.editModal.start}
+                        onChange={(e) => this.setEditModalStringFieldState('start', e.target.value)} />
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label htmlFor="edit-end">End</Form.Label>
+                    <Form.Control id="edit-end" type="text" value={this.state.editModal.end}
+                        onChange={(e) => this.setEditModalStringFieldState('end', e.target.value)} />
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label htmlFor="edit-location">Location</Form.Label>
+                    <Form.Control id="edit-location" type="text" value={this.state.editModal.location}
+                        onChange={(e) => this.setEditModalStringFieldState('location', e.target.value)} />
+                </Form.Group>
+
+                <Form.Group>
+
+                    <Button variant="primary" onClick={() => this.doEditEvent()}>
+                        <FontAwesomeIcon icon={faSave} /> Edit event
+            </Button>
+                </Form.Group>
+                {this.state.editModal.message ? (
+                    <Alert variant="danger" value={this.state.editModal.message} />
+                ) : ''}
+            </Modal.Body>
+        </Modal>)
     }
 }

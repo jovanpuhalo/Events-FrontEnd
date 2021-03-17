@@ -1,4 +1,4 @@
-import { faEdit, faHouseUser, faListAlt, faPlus, faSave } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faHouseUser, faListAlt, faMinus, faPlus, faSave } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import { Alert, Button, Card, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
@@ -7,13 +7,6 @@ import api, { ApiResponse, getToken } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";
 import RoledMainMenu from "../RoledMainMenu/RoledMainMenu";
 
-// interface EventPageProperties {
-//     match: {
-//         params: {
-//             eId: number
-//         }
-//     }
-// }
 interface EventTypes {
     eventTypeId: number,
     name: string,
@@ -28,17 +21,12 @@ interface EventDto {
     start: string;
     end: string;
     location: string;
-    // eventType: {
-    //     name: string
-    // }
-    // eventTypeId: string
-
 }
 
 interface EventPageState {
     message: string;
-    isLoggedIn: boolean;
-    // events?: EventDto[];
+    isAdministratorLoggedIn: boolean;
+
     eventTypes?: EventTypes[],
     eventOpend: boolean,
     eventSent?: EventDto[],
@@ -51,8 +39,6 @@ interface EventPageState {
 }
 
 
-
-
 export default class AdministratorDashboardEventTypes extends React.Component {
     state: EventPageState
     constructor(props: {} | Readonly<{}>) {
@@ -60,8 +46,8 @@ export default class AdministratorDashboardEventTypes extends React.Component {
 
         this.state = {
             message: '',
-            isLoggedIn: false,
-            // eventTypes: [],
+            isAdministratorLoggedIn: true,
+            eventTypes: [],
             eventOpend: false,
             addModal: {
                 visible: false,
@@ -71,20 +57,6 @@ export default class AdministratorDashboardEventTypes extends React.Component {
             }
 
         }
-        // const tokenUser = getToken('user').split(" ")[1]
-
-        // if (tokenUser !== 'null') {
-        //     this.setRoleState('user')
-        //     return;
-        // }
-        // const tokenAdmin = getToken('administrator').split(" ")[1]
-
-        // if (tokenAdmin !== 'null') {
-        //     this.setRoleState('administrator')
-        //     return;
-        // }
-
-
 
 
     }
@@ -105,12 +77,6 @@ export default class AdministratorDashboardEventTypes extends React.Component {
     }
 
 
-    private setEventSend(event: any) {
-        this.setState(Object.assign(this.state, {
-            eventSent: event
-        }))
-    }
-
     private setEventOpendState(event: boolean) {
         this.setState(Object.assign(this.state, {
             eventOpend: event
@@ -127,29 +93,9 @@ export default class AdministratorDashboardEventTypes extends React.Component {
 
 
 
-
-
-    private setEventSendState(events: EventDto[]) {
-        this.setState(Object.assign(this.state, {
-            eventSent: events
-        }))
-    }
-
-    private setEventTypeState(event: string) {
-        this.setState(Object.assign(this.state, {
-            eventType: event
-        }))
-    }
-
-    private setRoleState(role: string) {
-        this.setState(Object.assign(this.state, {
-            roleState: role
-        }))
-    }
-
     private setLoggedInState(isLoggedIn: boolean) {
         this.setState(Object.assign(this.state, {
-            isLoggedIn: isLoggedIn
+            isAdministratorLoggedIn: isLoggedIn
         }))
     }
 
@@ -173,10 +119,7 @@ export default class AdministratorDashboardEventTypes extends React.Component {
 
     }
 
-    // componentDidUpdate() {
-    //     this.getEvents();
 
-    // }
 
     private getEvents() {
         api('api/eventType/', 'get', {}, "administrator")
@@ -191,88 +134,19 @@ export default class AdministratorDashboardEventTypes extends React.Component {
 
                     return;
                 }
-                console.log("koliko puta se izvrsio");
 
-                this.setLoggedInState(true);
-
-
-                // const eventType: EventTypes[] =
-                //     res.data.map((eventType: EventTypes) => {
-                //         const object:EventTypes={
-                //             eventTypeId: eventType.eventTypeId,
-                //             name: eventType.name,
-                //             events:[]
-                //         }
-                //         eventType.events.map((event:EventDto)=>{
-
-                //         })
-                //         return {
-                //             eventTypeId: eventType.eventTypeId,
-                //             name: eventType.name
-                //         }
-                //     })
                 this.setEventTypesState(res.data);
-
-                // console.log("Stejt eventType ", this.state.eventTypes);
-
-
-                // const eventTypes: {}[] =
-                //     res.data.map((eventType: {}) => {
-                //         return
-                //         {
-
-                //         }
-                //     })
-
-
-                // const eventss: [] =
-                //     res.data.map((eventTypes: any) => {
-                //         eventTypes.events?.map((event: EventDto) => {
-                //             return {
-
-                //                 eventId: event.eventId,
-                //                 name: event.name,
-                //                 description: event.description,
-                //                 start: event.start,
-                //                 end: event.end,
-                //                 // eventTypeId: event.eventTypeId
-
-                //             }
-                //         })
-
-
-                //         // this.setEventsState(events);
-                //     })
-                // this.setEventsState(eventss);
-                // console.log(eventss);
-
 
             })
 
     }
 
-
-
-
-    private showEventTypes(eventType: EventTypes) {
-
-        return (
-            <Col lg="3" md="4" sm="6" xs="12" >
-                <Card className="mb-3 ">
-                    <Card.Body>
-                        <Card.Title as="p"> {eventType.name} </Card.Title>
-                        <Link to={`/eventType/${eventType.eventTypeId}`}
-                            className="btn btn-primary btn-block btn-sm">
-                            Show events
-                                      </Link>
-                    </Card.Body>
-                </Card>
-            </Col>
-
-        );
-    }
-
     render() {
+        if (this.state.isAdministratorLoggedIn === false) {
+            return (
+                <Redirect to="/administrator/login" />
+            );
+        }
         if (this.state.eventOpend === true) {
             return (<Redirect
                 to={{
@@ -282,7 +156,7 @@ export default class AdministratorDashboardEventTypes extends React.Component {
             />)
 
         }
-        console.log("state u renderu ", this.state.eventTypes);
+
         return (
             <Container>
                 <IdleTimerContainer />
@@ -319,19 +193,16 @@ export default class AdministratorDashboardEventTypes extends React.Component {
                                         <td>{eventType.name}</td>
 
                                         <td className="text-center">
-                                            <Button variant="danger" size="sm" className="mr-2" onClick={() => this.doDeleteEvent(eventType.eventTypeId)}>
-                                                Delete
+                                            <Button variant="danger" size="sm" className="mr-2"
+                                                onClick={() => this.doDeleteEvent(eventType.eventTypeId)}>
+                                                <FontAwesomeIcon icon={faMinus} /> Delete
                                                </Button>
+
                                             <Button variant="info" size="sm"
                                                 onClick={() => {
-                                                    // this.setEventSend(eventType)
-                                                    // this.setEventSendState(eventType.events)
                                                     this.setEventOpendState(true);
                                                     this.saveStateToLocalStorage(eventType.events, eventType.eventTypeId)
-
-                                                    console.log(this.state.eventOpend);
-                                                }}
-                                            >
+                                                }}>
                                                 Open
                                             </Button>
                                         </td>
@@ -374,6 +245,9 @@ export default class AdministratorDashboardEventTypes extends React.Component {
         )
     }
     private doDeleteEvent(eventTypeId: number) {
+        if (!window.confirm('Are you sure?')) {
+            return;
+        }
         api('api/eventType/' + eventTypeId, 'delete', {}, 'administrator')
             .then((res: ApiResponse) => {
                 if (res.status === 'error') {
@@ -381,7 +255,7 @@ export default class AdministratorDashboardEventTypes extends React.Component {
                     return;
                 }
                 if (res.status === 'login') {
-                    // this.setLoggedInState(false);
+                    this.setLoggedInState(false);
                     // this.setMessageState('Please Log in!');
 
                     return;
@@ -400,7 +274,7 @@ export default class AdministratorDashboardEventTypes extends React.Component {
                     return;
                 }
                 if (res.status === 'login') {
-                    // this.setLoggedInState(false);
+                    this.setLoggedInState(false);
                     // this.setMessageState('Please Log in!');
 
                     return;

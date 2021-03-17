@@ -111,7 +111,7 @@ export default class AdministratorLogin extends React.Component {
                                     <Form.Label htmlFor="password" />Password:
                                     <Form.Control type="password" id="password"
                                         value={this.state.password}
-                                        onChange={e => { this.formInputChanged(e as any) }} />
+                                        onChange={(e) => this.formInputChanged(e as any)} />
                                 </Form.Group>
                                 <Form.Group>
                                     <Button variant="primary"

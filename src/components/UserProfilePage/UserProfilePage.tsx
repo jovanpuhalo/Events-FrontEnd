@@ -38,24 +38,19 @@ interface UserProfilePageState {
     message: string;
     isLoggedIn: boolean;
     roleState?: "user" | "visitor";
-
     user: UserProfileDto;
-
     editModal: {
         visible: boolean;
-
         forename: string;
         surname: string;
         password: string
         address: string;
     }
-
-
+    comfirmModal: {
+        visible: boolean
+    }
 
 }
-
-
-
 
 export default class UserEventPage extends React.Component<UserProfilePageProperties>{
     state: UserProfilePageState
@@ -80,6 +75,9 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
                 surname: '',
                 password: '',
                 address: '',
+            },
+            comfirmModal: {
+                visible: false,
             }
 
         }
@@ -89,11 +87,7 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
             this.setRoleState('user')
         }
 
-        console.log('Konstruktor: u event page komponenti je  role User');
-
-
     }
-
 
 
     private setRoleState(role: string) {
@@ -124,7 +118,12 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
         this.setState(Object.assign(this.state.editModal, {
             visible: visible
         }))
+    } private setComfirmModalVisibleState(visible: boolean) {
+        this.setState(Object.assign(this.state.comfirmModal, {
+            visible: visible
+        }))
     }
+
 
     private setEditModalStringFieldState(fieldName: string, newValue: string) {
         this.setState(Object.assign(this.state,
@@ -210,6 +209,10 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
                     this.setLoggedInState(true);
                 }
                 this.setEditModalVisibleState(false);
+                this.setComfirmModalVisibleState(true);
+                setTimeout(() => {
+                    this.setComfirmModalVisibleState(false);
+                }, 2000)
                 const user: UserProfileDto =
 
                 {
@@ -224,15 +227,9 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
 
                 this.setUserState(user);
 
-
-
-                // this.getEventsForUser();
             })
+
     }
-
-
-
-
 
     render() {
 
@@ -254,9 +251,9 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
                         <Col lg="6">
                             <Form.Group>
                                 <Form.Label htmlFor="Surname"><b>Surname</b></Form.Label>
-                                <Form.Control id="Surname" type="text" value={this.state.user.surname}>
-
+                                <Form.Control id="Forname" type="text" value={this.state.user.surname}>
                                 </Form.Control>
+
                             </Form.Group>
                         </Col>
                         <Col lg="6">
@@ -316,6 +313,18 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
 
                 </Container>
 
+
+                <Modal size="sm" centered show={this.state.comfirmModal.visible}
+                    onHide={() => this.setComfirmModalVisibleState(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Done!</Modal.Title>
+                    </Modal.Header>
+                    {/* <Modal.Body>
+                        <p>Done!</p>
+                    </Modal.Body> */}
+                </Modal>
+
+
                 <Modal size="lg" centered show={this.state.editModal.visible}
                     onHide={() => this.setEditModalVisibleState(false)}>
                     <Modal.Header closeButton>
@@ -326,14 +335,16 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
                             <Col md="6">
                                 <Form.Group>
                                     <Form.Label htmlFor="Surname"><b>Surname</b></Form.Label>
-                                    <Form.Control id="Surname" type="text" value={this.state.editModal.surname}
+                                    <Form.Control id="Surname" type="text" placeholder="Surname"
+                                        value={this.state.editModal.surname}
                                         onChange={(e) => this.setEditModalStringFieldState('surname', e.target.value)} />
                                 </Form.Group>
                             </Col>
                             <Col md="6">
                                 <Form.Group>
                                     <Form.Label htmlFor="Forename"><b>Forename</b></Form.Label>
-                                    <Form.Control id="Forename" type="text" value={this.state.editModal.forename}
+                                    <Form.Control id="Forename" type="text"
+                                        value={this.state.editModal.forename}
                                         onChange={(e) => this.setEditModalStringFieldState('forename', e.target.value)} />
                                 </Form.Group>
                             </Col>
@@ -342,7 +353,8 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
                             <Col md="6">
                                 <Form.Group>
                                     <Form.Label htmlFor="Password"><b>Password</b></Form.Label>
-                                    <Form.Control id="Password" type="text" value={this.state.editModal.password}
+                                    <Form.Control id="Password" type="text" placeholder="Password"
+                                        value={this.state.editModal.password}
                                         onChange={(e) => this.setEditModalStringFieldState('password', e.target.value)}
                                     />
                                 </Form.Group>

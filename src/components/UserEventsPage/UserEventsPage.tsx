@@ -36,7 +36,7 @@ interface Events {
 
 interface UserEventPageState {
     // roleState: "user" | "visitor",
-    isLogedIn: boolean,
+    isLoggedIn: boolean,
     events: Events[],
     message: string,
     userId?: number,
@@ -51,20 +51,13 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
         super(props)
 
         this.state = {
-            // roleState: 'visitor',
-            isLogedIn: false,
+
+            isLoggedIn: true,
             message: '',
             events: [],
             userEvents: []
 
         }
-        // const token = getToken('user').split(" ")[1]
-
-        // if (token !== 'null') {
-        //     this.setRoleState('user')
-
-        // }
-        console.log(this.props.match.params.role);
 
     }
 
@@ -98,19 +91,14 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
     }
 
 
-    private setLoggedInState(isLogedIn: boolean) {
+    private setLoggedInState(isLoggedIn: boolean) {
         let newState = Object.assign(this.state, {
-            isLogedIn: isLogedIn
+            isLoggedIn: isLoggedIn
         })
         this.setState(newState);
     }
 
-    // private setRoleState(role: string) {
-    //     let newState = Object.assign(this.state, {
-    //         roleState: role
-    //     })
-    //     this.setState(newState);
-    // }
+
 
     componentDidMount() {
         this.getEventsForUser(this.props.match.params.role);
@@ -124,32 +112,34 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
 
         token = tokenParts[1];
 
+
         if (token !== 'null' && role === "user") {
             api('api/user/userId', 'post', { token }, role)
                 .then((res: ApiResponse) => {
                     if (res.status === 'error') {
+                        this.setLoggedInState(false);
                         // this.setMessageState('Request error. Please try to refresh the page.');
                         return;
                     }
                     if (res.status === 'login') {
-                        this.setLoggedInState(true);
+                        this.setLoggedInState(false);
                         return
                     }
-                    this.setStateUserId(res.data)
-                    this.setLoggedInState(true);
+                    this.setStateUserId(res.data.userId)
+                    // this.setLoggedInState(true);
 
-                    api('/api/events/' + this.state.userId, 'get', {})
+
+                    api('/api/events/' + this.state.userId, 'get', {}, role)
                         .then(res => {
                             if (res.status === 'login') {
                                 this.setLoggedInState(false);
                                 return;
                             }
                             if (res.status === 'error') {
+                                this.setLoggedInState(false);
                                 // this.setMessage('Request error. Please try to refresh the page.');
                                 return;
                             }
-                            this.setLoggedInState(true);
-                            // console.log(res.data);
 
 
                             let userEventss: number[] = []
@@ -158,10 +148,6 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
 
                                 this.setUserEvents(userEventss)
                             })
-
-
-
-
 
                             // this.setEventTypesState(res.data)
                             let events: Events[] =
@@ -193,8 +179,10 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
                         })
 
                 })
-
-
+            this.setLoggedInState(true)
+            return;
+        } else {
+            // this.setLoggedInState(false)
         }
 
 
@@ -202,15 +190,16 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
             api('api/administrator/admin/adminId', 'post', { token }, role)
                 .then((res: ApiResponse) => {
                     if (res.status === 'error') {
+                        this.setLoggedInState(false);
                         // this.setMessageState('Request error. Please try to refresh the page.');
                         return;
                     }
                     if (res.status === 'login') {
-                        this.setLoggedInState(true);
+                        this.setLoggedInState(false);
                         return
                     }
                     this.setStateUserId(res.data)
-                    this.setLoggedInState(true);
+                    // this.setLoggedInState(true);
 
                     api('/api/administrator/events/' + this.state.userId, 'get', {}, role)
                         .then(res => {
@@ -222,9 +211,8 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
                                 // this.setMessage('Request error. Please try to refresh the page.');
                                 return;
                             }
-                            this.setLoggedInState(true);
-                            // console.log(res.data);
-                            console.log(res.data);
+                            // this.setLoggedInState(true);
+
 
                             let adminEvents: number[] = []
                             adminEvents = res.data.administratorEvents.map((administratorEvent: any) => {
@@ -234,10 +222,6 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
 
 
                             })
-
-
-
-
 
                             // this.setEventTypesState(res.data)
                             let events: Events[] =
@@ -259,52 +243,33 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
                                 }).sort(function (a: any, b: any) {
                                     return a.userEventsId - b.userEventsId
                                 });
-                            // console.log(events);
-                            // events.sort(function (a, b) {
-                            //     return a.userEventsId - b.userEventsId
-                            // })
 
                             this.setEventState(events)
-                            console.log(events);
+
                         })
 
                 })
-
-
+            this.setLoggedInState(true)
+            return;
+        } else {
+            // this.setLoggedInState(false)
         }
     }
 
-
-    // private showEventTypes(eventType: Events) {
-
-    //     return (
-    //         <Col lg="3" md="4" sm="6" xs="12" >
-    //             <Card className="mb-3 ">
-    //                 <Card.Body>
-    //                     <Card.Title as="p"> {eventType.name} </Card.Title>
-    //                     <Link to={`/eventType/${eventType.eventTypeId}`}
-    //                         className="btn btn-primary btn-block btn-sm">
-    //                         Show events
-    //                                   </Link>
-    //                 </Card.Body>
-    //             </Card>
-    //         </Col>
-
-    //     );
-    // }
-
-
     unsubscribe(userId: any, eventId: any) {
-        api('api/event/admin/unsubscribe/' + userId + '/' + eventId, 'delete', {}, "administrator")
+
+        api('api/event/' + this.props.match.params.role + '/unsubscribe/' + userId + '/' + eventId, 'delete', {}, this.props.match.params.role)
             .then((res: ApiResponse) => {
                 if (res.status === 'error') {
+                    this.setLoggedInState(false);
                     this.setMessage('Request error. Please try to refresh the page.');
                     return;
                 }
                 if (res.status === 'login') {
-                    this.setLoggedInState(true);
+                    this.setLoggedInState(false);
                     return;
                 }
+                // this.setLoggedInState(true);
 
                 this.getEventsForUser(this.props.match.params.role);
             })
@@ -333,6 +298,12 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
     render() {
 
 
+        if (this.state.isLoggedIn === false) {
+            return (
+                <Redirect to="/user/login" />
+            );
+
+        }
 
         return (
             <Container >
@@ -382,6 +353,8 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
                             <th>Event end</th>
                             <th>Location</th>
                             <th>Status</th>
+                            <th></th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -400,9 +373,6 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
                                         <FontAwesomeIcon icon={faMinusCircle} />
                                     </Button>
                                 </td>
-                                {/* <td>
-                                {this.printStatusChangeButtons(order)}
-                            </td> */}
                             </tr>
                         ), this)}
                     </tbody>

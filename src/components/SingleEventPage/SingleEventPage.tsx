@@ -6,6 +6,7 @@ import { Link, Redirect } from "react-router-dom";
 import api, { ApiResponse, getToken } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";
 import RoledMainMenu from "../RoledMainMenu/RoledMainMenu";
+import UsersInEvent from "../UsersInEvent.tsx/UsersInEvent";
 
 interface SingleEventPageProperties {
     match: {
@@ -22,13 +23,14 @@ interface EventDto {
     start: string;
     end: string;
     location: string;
-    // status: "Scheduled" | "In progress" | "Closed"
     eventType: {
         name: string
         eventTypeId: string
     };
     users: {
         userId: number
+        forename: string
+        surname: string
 
     }[];
     administrators: {
@@ -45,8 +47,6 @@ interface EventPageState {
     userId?: number;
     event?: EventDto;
     subscribed: "Subscribe" | "Unsubscribe",
-    // eventType?: string
-
     eventStatus?: string
 
 
@@ -105,12 +105,6 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
         })
     }
 
-    // private setEventTypeState(event: string) {
-    //     this.setState(Object.assign(this.state, {
-    //         eventType: event
-    //     }))
-    // }
-
     private setRoleState(role: string) {
         this.setState(Object.assign(this.state, {
             roleState: role
@@ -152,10 +146,6 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
 
                 }
 
-                // console.log(res.data);
-
-                // const eventName: string = res.data.name
-                // this.setEventTypeState(eventType);
 
                 const event: EventDto =
                 {
@@ -164,7 +154,6 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
                     description: res.data.description,
                     start: res.data.start,
                     end: res.data.end,
-                    // status: res.data.status,
                     location: res.data.location,
                     eventType: {
                         eventTypeId: res.data.eventType.eventTypeId,
@@ -176,12 +165,9 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
 
                 this.setEventsState(event);
 
-
                 this.setStatusEvent(this.state.event?.start, this.state.event?.end)
 
                 this.getCurentUserId(this.state.roleState);
-
-
 
             })
 
@@ -191,7 +177,6 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
 
 
         if (this.state.isLoggedIn) {
-            console.log("bio sam ovde");
 
             return (
                 <Redirect to="/user/login" />
@@ -302,11 +287,6 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
                 })
         }
 
-        // let tokenAdmin: string = getToken('administrator')
-        // const tokenPartss = tokenAdmin.split(' ');
-
-        // tokenAdmin = tokenPartss[1];
-
         if (token !== 'null' && role === "administrator") {
             api('api/administrator/admin/adminId', 'post', { token }, role)
                 .then((res: ApiResponse) => {
@@ -321,9 +301,6 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
                     this.setStateUserId(res.data)
 
                     if (this.state.subscribed === "Subscribe") {
-                        console.log("user id je  " + this.state.userId);
-                        console.log("event id je " + this.state.event?.eventId);
-
 
                         api('api/event/admin/subscribe', 'post', { administratorId: this.state.userId, eventId: this.state.event?.eventId }, role)
                             .then((res: ApiResponse) => {
@@ -416,43 +393,6 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
                 })
         }
 
-        // let tokenAdmin: string = getToken('administrator')
-        // console.log("token admin  " + tokenAdmin);
-        // const tokenPartss = tokenAdmin.split(' ');
-
-        // tokenAdmin = tokenPartss[1];
-
-
-        // if (tokenAdmin !== "null") {
-        //     console.log("Trazim admin id  ");
-
-        //     api('api/administrator/admin/adminId', 'post', { tokenAdmin }, "administrator")
-        //         .then((res: ApiResponse) => {
-        //             console.log("rezultat " + res.data);
-
-        //             if (res.status === 'error') {
-        //                 this.setMessageState('Request error. Please try to refresh the page.');
-        //                 return
-        //             }
-        //             if (res.status === 'login') {
-        //                 this.setLoggedInState(true);
-        //                 return
-        //             }
-
-        //             this.setStateUserId(res.data)
-
-        //             if (this.state.event?.users) {
-        //                 this.state.event.users.map((user) => {
-        //                     if (this.state.userId === user.userId) {
-        //                         this.setSubscribedState("Unsubscribe");
-
-
-        //                     }
-        //                 })
-        //             }
-        //         })
-        // }
-
     }
 
     setStatusEvent(startTime: any, endTime: any) {
@@ -481,14 +421,16 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
     renderEventData(event: EventDto) {
         return (
             <>
+
                 <Row>
-                    <Col xs="12" sm="12" md="6" lg="6">
+                    <Col xs="12" sm="12" md="6" lg="6" >
 
                         <div className="description">
                             {event.description}
                         </div>
 
                         <hr />
+                        <UsersInEvent events={this.state.event} />
 
 
                     </Col>
@@ -509,15 +451,11 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
                         </Table>
 
                         <b> Location:  </b>{this.state.event?.location} <br /><br />
-                        {/* <b> Status:  </b>  {this.state.event?.status}<br /><br /> */}
-
-                        {/* {this.setStatusEvent(this.state.event?.start, this.state.event?.end)} */}
 
                         <p><b> Status:  </b> {this.state.eventStatus}</p>
 
                         <Button variant="primary" size="sm"
                             onClick={() => this.subscribe(this.state.eventStatus, this.state.roleState)}
-                        // disabled={this.state.eventStatus === "Closed" || this.state.eventStatus === "In Progress"}
                         >
                             <FontAwesomeIcon icon={faPlus} /> {(this.state.eventStatus === "Closed" || this.state.eventStatus === "In Progress")
                                 ? "Subscribe" : this.state.subscribed}
@@ -530,6 +468,7 @@ export default class SingleEventPage extends React.Component<SingleEventPageProp
                         ) : ''}
                         {/* {this.printOptionalMessage()} */}
                     </Col>
+
                 </Row>
             </>
         );

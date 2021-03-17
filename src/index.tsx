@@ -23,6 +23,8 @@ import AdministratorLogout from './components/Administrator/AdministratorLogout'
 import AdministratorDashboard from './components/Administrator/AdministratorDashboard';
 import AdministratorEvent from './components/Administrator/AdministratorEvent';
 import AdministratorDashboardEventTypes from './components/Administrator/AdministratorDashboardEventTypes';
+import AdministratorDashboardUsers from './components/Administrator/AdministratorDashboardUsers';
+import FormComponent from './components/form-component';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -40,8 +42,10 @@ ReactDOM.render(
         <Route path="/administrator/login" component={AdministratorLogin} />
         <Route path="/administrator/logout" component={AdministratorLogout} />
         <Route exact path="/administrator/dashboard" component={AdministratorDashboard} />
-        <Route exact path="/administrator/dashboard/events" component={AdministratorDashboardEventTypes} />
+        <Route exact path="/administrator/dashboard/eventTypes" component={AdministratorDashboardEventTypes} />
         <Route path="/administrator/dashboard/events/event" component={AdministratorEvent} />
+        <Route path="/administrator/dashboard/users" component={AdministratorDashboardUsers} />
+        <Route path="/bezze" component={FormComponent} />
 
 
       </Switch>

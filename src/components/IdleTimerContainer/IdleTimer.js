@@ -1,7 +1,7 @@
 import IdleTimer from 'react-idle-timer'
 import React, { useRef, useState } from 'react'
 import { Redirect } from 'react-router-dom'
-import { Modal, Button, Card, Form, Row, Col } from 'react-bootstrap'
+import { Modal, Button, Row, Col } from 'react-bootstrap'
 import { removeToken } from '../../api/api'
 
 
@@ -31,25 +31,17 @@ function IdleTimerContainer() {
 
 
     if (isLoggedOf) {
-        // getTotalActiveTime()
-        // console.log('vre ' + getTotalActiveTime());
+
         return (
             < Redirect to={path} />
         )
-
-
     }
 
     return (
 
         <div>
-
             <Modal size="sm" centered show={modalIsOpen} className="border-4">
-
-
                 <p className="ml-5 mt-2">Your session has expired!</p>
-
-
                 <Row className=" mb-3" >
                     <Col xs={{ span: 5, offset: 4 }} >
                         <Button variant="primary" className="" onClick={logOut}>
@@ -58,8 +50,6 @@ function IdleTimerContainer() {
                          </Button>
                     </Col>
                 </Row>
-
-
             </Modal>
             <IdleTimer
                 ref={IdleTimerRef}
