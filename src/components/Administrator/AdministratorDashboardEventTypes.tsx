@@ -1,7 +1,7 @@
 import { faListAlt, faMinus, faPlus, faSave } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import { Alert, Button, Card, Col, Container, Form, Modal, Table } from "react-bootstrap";
+import { Alert, Button, Card, Container, Form, Modal, Table } from "react-bootstrap";
 import { Redirect } from "react-router-dom";
 import api, { ApiResponse } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";

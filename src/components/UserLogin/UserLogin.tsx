@@ -2,7 +2,7 @@ import { faSignInAlt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import { Alert, Button, Card, Col, Container, Form } from "react-bootstrap";
-import { Redirect } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import api, { ApiResponse, saveToken } from "../../api/api";
 import RoledMainMenu from "../RoledMainMenu/RoledMainMenu";
 
@@ -119,11 +119,21 @@ export default class UserLogin extends React.Component {
                                         value={this.state.password}
                                         onChange={e => { this.formInputChanged(e as any) }} />
                                 </Form.Group>
-                                <Form.Group>
+                                <Form.Group >
+                                    {/* <div style={{ display: 'flex' }}> */}
+
+
                                     <Button variant="primary"
+
                                         onClick={() => this.doLogin()}>
                                         Log in
-                                    </Button>
+                                         </Button>
+                                    <Link style={{ display: 'inline-block', float: 'right', height: 37 }}
+                                        to="/user/registration/"
+
+                                        className="btn btn-primary  btn-sm"> Sign up
+                                     </Link>
+                                    {/* </div> */}
                                 </Form.Group>
                             </Form>
                             <Alert variant="danger"
