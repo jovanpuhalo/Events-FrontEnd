@@ -99,14 +99,11 @@ export default class AdministratorDashboardUsers extends React.Component {
         return (
             <Container>
                 <RoledMainMenu role="administrator" />
-                <Card>
-                    <Card.Body>
+                <Card className="border-0">
+                    <Card.Body >
                         <Table hover size="sm" bordered>
                             <thead>
-                                <tr>
-                                    <th colSpan={7}></th>
-                                    <th> </th>
-                                </tr>
+
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
@@ -116,7 +113,7 @@ export default class AdministratorDashboardUsers extends React.Component {
                                     <th>Phone</th>
                                     <th>Address</th>
 
-                                    <th></th>
+                                    <th> Deny access</th>
                                 </tr>
                             </thead>
                             <tbody>

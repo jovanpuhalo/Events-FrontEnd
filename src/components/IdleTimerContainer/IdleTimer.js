@@ -1,5 +1,5 @@
 import IdleTimer from 'react-idle-timer'
-import React, { useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Redirect } from 'react-router-dom'
 import { Modal, Button, Row, Col } from 'react-bootstrap'
 import { removeToken } from '../../api/api'
@@ -16,7 +16,7 @@ function IdleTimerContainer() {
 
     function onIdle() {
 
-
+        console.log("isteklo");
         setModalIsOpen(true);
         removeToken('user')
     }

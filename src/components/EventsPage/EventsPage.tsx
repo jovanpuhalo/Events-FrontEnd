@@ -1,7 +1,7 @@
 import { faBackward, faHouseUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import { Alert, Card, Col, Container, Row } from "react-bootstrap";
+import { Card, Col, Container, Row } from "react-bootstrap";
 import { Link, Redirect } from "react-router-dom";
 import api, { ApiResponse, getToken } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";

@@ -1,9 +1,9 @@
-import { faEdit, faHouseUser, faListAlt, faMinus, faPlus, faSave } from "@fortawesome/free-solid-svg-icons";
+import { faListAlt, faMinus, faPlus, faSave } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import { Alert, Button, Card, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
-import { Link, Redirect } from "react-router-dom";
-import api, { ApiResponse, getToken } from "../../api/api";
+import { Alert, Button, Card, Col, Container, Form, Modal, Table } from "react-bootstrap";
+import { Redirect } from "react-router-dom";
+import api, { ApiResponse } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";
 import RoledMainMenu from "../RoledMainMenu/RoledMainMenu";
 
@@ -36,6 +36,9 @@ interface EventPageState {
         name: string,
         message: string
     }
+    confirmModal: {
+        visible: boolean
+    }
 }
 
 
@@ -54,12 +57,22 @@ export default class AdministratorDashboardEventTypes extends React.Component {
                 eventTypeId: 0,
                 name: '',
                 message: ''
+            },
+            confirmModal: {
+                visible: false
             }
 
         }
 
 
     }
+
+    private setConfirmModalVisibleState(visible: boolean) {
+        this.setState(Object.assign(this.state.confirmModal, {
+            visible: visible
+        }))
+    }
+
 
     private setAddModalStringFieldState(fieldName: string, newValue: string) {
         this.setState(Object.assign(this.state,
@@ -162,7 +175,7 @@ export default class AdministratorDashboardEventTypes extends React.Component {
                 <IdleTimerContainer />
                 <RoledMainMenu role={"administrator"} />
 
-                <Card>
+                <Card className="border-white">
                     <Card.Body>
                         <Card.Title>
                             <FontAwesomeIcon icon={faListAlt} /> Event types
@@ -234,11 +247,28 @@ export default class AdministratorDashboardEventTypes extends React.Component {
                                 <FontAwesomeIcon icon={faSave} /> Add event type
                             </Button>
                         </Form.Group>
-                        {this.state.addModal.message ? (
+                        <Alert variant="danger"
+                            className={this.state.addModal.message ? '' : 'd-none'}>
+                            {this.state.addModal.message}
+                        </Alert>
+                        {/* {this.state.addModal.message ? (
                             <Alert variant="danger" value={this.state.addModal.message} />
-                        ) : ''}
+                        ) : ''} */}
                     </Modal.Body>
                 </Modal>
+
+
+                <Modal size="sm" centered show={this.state.confirmModal.visible}
+                    onHide={() => this.setConfirmModalVisibleState(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Done!</Modal.Title>
+                    </Modal.Header>
+                    {/* <Modal.Body>
+                   <p>Done!</p>
+                   </Modal.Body> */}
+                </Modal>
+
+
 
 
             </Container>
@@ -261,6 +291,10 @@ export default class AdministratorDashboardEventTypes extends React.Component {
                     return;
                 }
                 this.getEvents()
+                this.setConfirmModalVisibleState(true);
+                setTimeout(() => {
+                    this.setConfirmModalVisibleState(false);
+                }, 2000)
 
 
             })
@@ -269,6 +303,8 @@ export default class AdministratorDashboardEventTypes extends React.Component {
     private doAddEvent() {
         api('api/eventType/add', 'post', { name: this.state.addModal.name }, "administrator")
             .then((res: ApiResponse) => {
+                console.log(res);
+
                 if (res.status === 'error') {
                     // this.setEditModalStringFieldState('message', 'Request error. Please try to refresh the page.');
                     return;
@@ -279,8 +315,20 @@ export default class AdministratorDashboardEventTypes extends React.Component {
 
                     return;
                 }
+                if (res.data.errorCode) {
+                    this.setAddModalStringFieldState('message', 'You have to write the name of event type!');
+                    console.log("porukaaaaaaa", this.state.addModal.message);
+
+                    return;
+                }
+
+
                 this.getEvents();
                 this.setAddModalVisible(false);
+                this.setConfirmModalVisibleState(true);
+                setTimeout(() => {
+                    this.setConfirmModalVisibleState(false);
+                }, 2000)
 
             })
     }

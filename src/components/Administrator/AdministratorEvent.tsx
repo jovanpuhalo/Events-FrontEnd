@@ -1,8 +1,8 @@
 
-import { faBackward, faEdit, faListAlt, faPlus, faSave } from "@fortawesome/free-solid-svg-icons";
+import { faBackward, faListAlt, faPlus, faSave } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import { Alert, Button, Card, Col, Container, Form, Modal, Table } from "react-bootstrap";
+import { Alert, Button, Card, Container, Form, Modal, Table } from "react-bootstrap";
 import { Link, Redirect } from "react-router-dom";
 import api, { ApiResponse } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";
@@ -51,7 +51,10 @@ interface AdministratorEventState {
         end: string;
         location: string;
         message: string;
-        eventTypeId: number;
+        eventTypeId?: number;
+    }
+    confirmModal: {
+        visible: boolean
     }
 }
 
@@ -85,24 +88,40 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
                 end: '',
                 location: '',
                 message: '',
-
-                eventTypeId: 0
+            },
+            confirmModal: {
+                visible: false
             }
+
         }
         const state = localStorage.getItem('state')
         const eventTypeId = localStorage.getItem('eventTypeId')
+        console.log(eventTypeId);
+        console.log(typeof (Number(eventTypeId)));
+
+
 
         if (state && eventTypeId) {
 
             this.setEventTypesState(JSON.parse(state))
-            this.setEventTypeIdState(JSON.parse(eventTypeId))
+            this.setEventTypeIdState(Number(eventTypeId))
+            console.log(this.state.addModal.eventTypeId);
 
         }
+
 
     }
 
     componentDidMount() {
         this.getEvents(this.state.eventTypeId)
+        console.log(this.state.addModal.eventTypeId);
+
+    }
+
+    private setConfirmModalVisibleState(visible: boolean) {
+        this.setState(Object.assign(this.state.confirmModal, {
+            visible: visible
+        }))
     }
 
     private setEventTypeIdState(eventTypeId: number) {
@@ -187,7 +206,7 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
                 <IdleTimerContainer />
                 <RoledMainMenu role={"administrator"} />
 
-                <Card>
+                <Card className="border-0">
                     <Card.Body>
                         <Card.Title>
                             <FontAwesomeIcon icon={faListAlt} /> Events
@@ -251,6 +270,7 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
 
                 {this.addModal()}
                 {this.editModal()}
+                {this.confirmModal()}
 
 
             </Container>
@@ -296,11 +316,14 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
             start: this.state.addModal.start,
             end: this.state.addModal.end,
             location: this.state.addModal.location,
-            eventTypeId: Number(this.state.eventTypeId)
+            eventTypeId: this.state.eventTypeId,
+
         }, 'administrator')
             .then((res: ApiResponse) => {
                 if (res.status === 'error') {
-                    // this.setEditModalStringFieldState('message', 'Request error. Please try to refresh the page.');
+                    console.log("res", res);
+
+                    this.setAddModalStringFieldState('message', 'Fields must be filled in correctly and must not be blank!');
                     return;
                 }
                 if (res.status === 'login') {
@@ -309,9 +332,15 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
 
                     return;
                 }
+
                 // this.setLogginState(true);
                 this.setAddModalVisible(false);
                 this.getEvents(this.state.eventTypeId)
+
+                this.setConfirmModalVisibleState(true);
+                setTimeout(() => {
+                    this.setConfirmModalVisibleState(false);
+                }, 2000)
             })
 
     }
@@ -328,7 +357,9 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
                 console.log("editovan  event  ", res.data);
 
                 if (res.status === 'error') {
-                    this.setEditModalStringFieldState('message', 'Request error. Please try to refresh the page.');
+                    console.log("res", res);
+
+                    this.setEditModalStringFieldState('message', 'Fields must be filled in correctly and must not be blank!');
                     return;
                 }
                 if (res.status === 'login') {
@@ -337,14 +368,19 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
 
                     return;
                 }
-                // this.setLogginState(true);
-                this.setEditModalVisible(false);
+
+
                 const eventTypeId = localStorage.getItem('eventTypeId')
-
                 if (eventTypeId) {
-
                     this.getEvents(JSON.parse(eventTypeId))
                 }
+
+                this.setEditModalVisible(false);
+
+                this.setConfirmModalVisibleState(true);
+                setTimeout(() => {
+                    this.setConfirmModalVisibleState(false);
+                }, 2000)
 
 
             })
@@ -415,7 +451,19 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
         this.setAddModalVisible(true);
     }
 
-
+    private confirmModal() {
+        return (
+            <Modal size="sm" centered show={this.state.confirmModal.visible}
+                onHide={() => this.setConfirmModalVisibleState(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Done!</Modal.Title>
+                </Modal.Header>
+                {/* <Modal.Body>
+                   <p>Done!</p>
+                   </Modal.Body> */}
+            </Modal>
+        )
+    }
 
     private addModal() {
         return (
@@ -463,9 +511,10 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
                             <FontAwesomeIcon icon={faSave} /> Add event
                             </Button>
                     </Form.Group>
-                    {this.state.addModal.message ? (
-                        <Alert variant="danger" value={this.state.addModal.message} />
-                    ) : ''}
+                    <Alert variant="danger"
+                        className={this.state.addModal.message ? '' : 'd-none'}>
+                        {this.state.addModal.message}
+                    </Alert>
                 </Modal.Body>
             </Modal>
         )
@@ -490,12 +539,12 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
                         rows={6} />
                 </Form.Group>
                 <Form.Group>
-                    <Form.Label htmlFor="edit-start">Start</Form.Label>
+                    <Form.Label htmlFor="edit-start">Start  -   (YYYY-DD-MM HH:mm)</Form.Label>
                     <Form.Control id="edit-start" type="text" value={this.state.editModal.start}
                         onChange={(e) => this.setEditModalStringFieldState('start', e.target.value)} />
                 </Form.Group>
                 <Form.Group>
-                    <Form.Label htmlFor="edit-end">End</Form.Label>
+                    <Form.Label htmlFor="edit-end">End    (YYYY-DD-MM HH:mm)</Form.Label>
                     <Form.Control id="edit-end" type="text" value={this.state.editModal.end}
                         onChange={(e) => this.setEditModalStringFieldState('end', e.target.value)} />
                 </Form.Group>
@@ -511,9 +560,10 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
                         <FontAwesomeIcon icon={faSave} /> Edit event
             </Button>
                 </Form.Group>
-                {this.state.editModal.message ? (
-                    <Alert variant="danger" value={this.state.editModal.message} />
-                ) : ''}
+                <Alert variant="danger"
+                    className={this.state.editModal.message ? '' : 'd-none'}>
+                    {this.state.editModal.message}
+                </Alert>
             </Modal.Body>
         </Modal>)
     }

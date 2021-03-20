@@ -1,9 +1,8 @@
 import { faHouseUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import { Button, Card, Col, Container, Row } from "react-bootstrap";
-import { Link, Redirect } from "react-router-dom";
-import { getTokenSourceMapRange } from "typescript";
+import { Card, Col, Container, Row } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import api, { getToken } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";
 import RoledMainMenu from "../RoledMainMenu/RoledMainMenu";
@@ -131,6 +130,7 @@ export default class HomePage extends React.Component {
 
         return (
             <Container>
+                <IdleTimerContainer />
                 <RoledMainMenu role={this.state.roleState} />
                 <Card>
                     <Card.Body>

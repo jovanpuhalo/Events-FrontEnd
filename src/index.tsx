@@ -24,7 +24,7 @@ import AdministratorDashboard from './components/Administrator/AdministratorDash
 import AdministratorEvent from './components/Administrator/AdministratorEvent';
 import AdministratorDashboardEventTypes from './components/Administrator/AdministratorDashboardEventTypes';
 import AdministratorDashboardUsers from './components/Administrator/AdministratorDashboardUsers';
-import FormComponent from './components/form-component';
+
 
 ReactDOM.render(
   <React.StrictMode>
@@ -45,7 +45,7 @@ ReactDOM.render(
         <Route exact path="/administrator/dashboard/eventTypes" component={AdministratorDashboardEventTypes} />
         <Route path="/administrator/dashboard/events/event" component={AdministratorEvent} />
         <Route path="/administrator/dashboard/users" component={AdministratorDashboardUsers} />
-        <Route path="/bezze" component={FormComponent} />
+        {/* <Route path="/bezze" component={SideNavPage} /> */}
 
 
       </Switch>

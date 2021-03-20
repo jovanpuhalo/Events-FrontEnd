@@ -1,11 +1,13 @@
-import { faBackward, faEdit, faHouseUser, faSave } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faSave } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import { Alert, Button, Card, Col, Container, Form, Modal, Row } from "react-bootstrap";
-import { Link, Redirect } from "react-router-dom";
+import { Alert, Button, Col, Container, Form, Modal, Row } from "react-bootstrap";
+import { Redirect } from "react-router-dom";
 import api, { ApiResponse, getToken } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";
 import RoledMainMenu from "../RoledMainMenu/RoledMainMenu";
+
+const passwordValidator = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/;
 
 interface UserProfilePageProperties {
     match: {
@@ -15,12 +17,6 @@ interface UserProfilePageProperties {
     }
 }
 
-// interface UserEditDto {
-//     forename: string;
-//     surname: string;
-//     password: string
-//     address: string;
-// }
 
 interface UserProfileDto {
     userId?: number;
@@ -43,8 +39,10 @@ interface UserProfilePageState {
         visible: boolean;
         forename: string;
         surname: string;
-        password: string
+        password: string;
+        confirmPassword: string;
         address: string;
+        message: string;
     }
     comfirmModal: {
         visible: boolean
@@ -75,6 +73,8 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
                 surname: '',
                 password: '',
                 address: '',
+                message: '',
+                confirmPassword: ''
             },
             comfirmModal: {
                 visible: false,
@@ -118,7 +118,8 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
         this.setState(Object.assign(this.state.editModal, {
             visible: visible
         }))
-    } private setComfirmModalVisibleState(visible: boolean) {
+    }
+    private setComfirmModalVisibleState(visible: boolean) {
         this.setState(Object.assign(this.state.comfirmModal, {
             visible: visible
         }))
@@ -186,6 +187,7 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
         this.setEditModalStringFieldState('forename', this.state.user.forename);
         this.setEditModalStringFieldState('password', '');
         this.setEditModalStringFieldState('address', this.state.user.address);
+        this.setEditModalStringFieldState('confirmPassword', '');
 
         this.setEditModalVisibleState(true);
 
@@ -198,6 +200,14 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
             forename: this.state.editModal.forename,
             password: this.state.editModal.password,
             address: this.state.editModal.address,
+        }
+        if (!passwordValidator.test(this.state.editModal.password)) {
+            this.setEditModalStringFieldState("message", "Password must contain at least 8 characters, 1 number, 1 upper and 1 lowercase!")
+            return
+        }
+        if (this.state.editModal.password !== this.state.editModal.confirmPassword) {
+            this.setEditModalStringFieldState("message", "Passwords do not match")
+            return
         }
 
         api('api/user/' + this.state.user.userId, 'patch', data)
@@ -353,12 +363,23 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
                             <Col md="6">
                                 <Form.Group>
                                     <Form.Label htmlFor="Password"><b>Password</b></Form.Label>
-                                    <Form.Control id="Password" type="text" placeholder="Password"
+                                    <Form.Control id="Password" type="password" placeholder="Password"
                                         value={this.state.editModal.password}
                                         onChange={(e) => this.setEditModalStringFieldState('password', e.target.value)}
                                     />
                                 </Form.Group>
                             </Col>
+                            <Col md="6">
+                                <Form.Group>
+                                    <Form.Label htmlFor="Confirm password"><b>Confirm password</b></Form.Label>
+                                    <Form.Control id="Confirm password" type="password" placeholder="Confirm password"
+                                        value={this.state.editModal.confirmPassword}
+                                        onChange={(e) => this.setEditModalStringFieldState('confirmPassword', e.target.value)}
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
                             <Col md="6">
                                 <Form.Group>
                                     <Form.Label htmlFor="Address"><b>Address</b></Form.Label>
@@ -373,9 +394,10 @@ export default class UserEventPage extends React.Component<UserProfilePageProper
                                 <FontAwesomeIcon icon={faSave} /> Ok
                             </Button>
                         </Form.Group>
-                        {/* {this.state.editModal.message ? (
-                            <Alert variant="danger" value={this.state.editModal.message} />
-                        ) : ''} */}
+                        <Alert variant="danger"
+                            className={this.state.editModal.message ? '' : 'd-none'}>
+                            {this.state.editModal.message}
+                        </Alert>
                     </Modal.Body>
                 </Modal>
             </>

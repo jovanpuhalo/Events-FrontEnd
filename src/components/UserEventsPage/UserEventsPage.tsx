@@ -1,8 +1,8 @@
-import { faCalendar, faHouseUser, faMinusCircle, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faCalendar, faMinusCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import { Button, Card, Col, Container, Row, Tab, Table, Tabs } from "react-bootstrap";
-import { Link, Redirect } from "react-router-dom";
+import { Button, Card, Col, Container, Tab, Table, Tabs } from "react-bootstrap";
+import { Redirect } from "react-router-dom";
 import api, { ApiResponse, getToken } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";
 import RoledMainMenu from "../RoledMainMenu/RoledMainMenu";
@@ -112,6 +112,10 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
 
         token = tokenParts[1];
 
+        if (role !== "administrator" && role !== "user") {
+            this.setLoggedInState(false);
+
+        }
 
         if (token !== 'null' && role === "user") {
             api('api/user/userId', 'post', { token }, role)
@@ -181,8 +185,6 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
                 })
             this.setLoggedInState(true)
             return;
-        } else {
-            // this.setLoggedInState(false)
         }
 
 
@@ -251,9 +253,8 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
                 })
             this.setLoggedInState(true)
             return;
-        } else {
-            // this.setLoggedInState(false)
         }
+        this.setLoggedInState(false)
     }
 
     unsubscribe(userId: any, eventId: any) {
@@ -310,7 +311,7 @@ export default class UserEventPage extends React.Component<EventsPageProperties>
                 <IdleTimerContainer />
                 <RoledMainMenu role={this.props.match.params.role} />
                 <Col >
-                    <Card  >
+                    <Card className="border-white">
                         <Card.Body>
                             <Card.Title>
                                 <FontAwesomeIcon icon={faCalendar} /> My events
