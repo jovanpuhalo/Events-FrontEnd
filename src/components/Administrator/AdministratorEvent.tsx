@@ -8,6 +8,9 @@ import api, { ApiResponse } from "../../api/api";
 import IdleTimerContainer from "../IdleTimerContainer/IdleTimer";
 import RoledMainMenu from "../RoledMainMenu/RoledMainMenu";
 
+
+var dateValidation = /[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]/;
+
 interface EventsPageProperties {
     location?: any
 }
@@ -310,6 +313,15 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
 
     private doAddEvent() {
 
+        if (!dateValidation.test(this.state.addModal.start)) {
+            this.setAddModalStringFieldState("message", "Start must be filled in correctly !")
+            return
+        }
+        if (!dateValidation.test(this.state.addModal.end)) {
+            this.setAddModalStringFieldState("message", "End must be filled in correctly !")
+            return
+        }
+
         api('api/event/createEvent', 'post', {
             name: this.state.addModal.name,
             description: this.state.addModal.description,
@@ -346,6 +358,15 @@ export default class AdministratorEvent extends React.Component<EventsPageProper
     }
 
     private doEditEvent() {
+
+        if (!dateValidation.test(this.state.editModal.start)) {
+            this.setEditModalStringFieldState("message", "Start and End must be filled in correctly !")
+            return
+        }
+        if (!dateValidation.test(this.state.editModal.end)) {
+            this.setEditModalStringFieldState("message", "End must be filled in correctly !")
+            return
+        }
         api('api/event/' + this.state.editModal.eventId, 'patch', {
             name: this.state.editModal.name,
             description: this.state.editModal.description,
